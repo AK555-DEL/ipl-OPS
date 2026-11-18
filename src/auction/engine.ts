@@ -1128,7 +1128,7 @@ export function buildViewModel(
         currentPid = null;
       }
     }
-    return out.slice(-12).reverse();
+    return out.slice(-80).reverse();
   })();
 
   return {
@@ -1192,7 +1192,7 @@ export function buildViewModel(
     last,
     recentBids,
     log: events
-      .slice(-15)
+      .slice(-40)
       .reverse()
       .map((e) => describeEvent(e, pidMap, resolvedShorts)),
   };

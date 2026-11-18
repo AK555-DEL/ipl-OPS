@@ -603,6 +603,7 @@ export async function createApp(httpServer?: http.Server): Promise<{
   app.post('/api/cmd', (req, res) => {
     const body = (req.body || {}) as CommandBody;
     const isBidAction = body.type === 'bid' || body.type === 'custom' || body.type === 'jump';
+    const isUndoAction = body.type === 'undo';
     const teamTokenHeader =
       typeof req.headers['x-team-token'] === 'string' ? req.headers['x-team-token'] : '';
     const subOpRole = getSubOpRole(req);
@@ -631,6 +632,52 @@ export async function createApp(httpServer?: http.Server): Promise<{
       } else if (tokenStore.hostSessionToken) {
         res.status(401).json({
           error: 'Enter a Bids Operator PIN or Team Room Token to place bids.',
+        });
+        return;
+      } else if (PIN && req.headers['x-pin'] !== PIN) {
+        res.status(401).json({ error: 'Wrong operator PIN' });
+        return;
+      }
+    } else if (isUndoAction) {
+      if (hostOk) {
+        // Main Operator has full undo authority
+      } else if (subOpRole === 'bids') {
+        const lastEv = events[events.length - 1];
+        if (!lastEv) {
+          res.status(400).json({ error: 'Nothing to undo' });
+          return;
+        }
+        if (lastEv.t !== 'BID' && lastEv.t !== 'RESET') {
+          res.status(403).json({
+            error: 'Bids Operator can only undo bid actions. Ask Main Operator to undo lot transitions.',
+          });
+          return;
+        }
+      } else if (subOpRole === 'display') {
+        res.status(403).json({
+          error: 'Display Sub-Operator PIN is read-only for Arena 1.',
+        });
+        return;
+      } else if (teamTokenHeader) {
+        const resolvedTeam = resolveTeamIdByToken(tokenStore.teamTokens, teamTokenHeader);
+        if (!resolvedTeam) {
+          res.status(401).json({ error: 'Invalid or expired team token. Re-join room with a valid token.' });
+          return;
+        }
+        const lastEv = events[events.length - 1];
+        if (!lastEv) {
+          res.status(400).json({ error: 'Nothing to undo' });
+          return;
+        }
+        if (lastEv.t !== 'BID' || lastEv.team !== resolvedTeam) {
+          res.status(403).json({
+            error: "You can only undo your team's most recent bid.",
+          });
+          return;
+        }
+      } else if (tokenStore.hostSessionToken) {
+        res.status(401).json({
+          error: 'Main Operator login, Bids Operator PIN, or Team Token required to undo.',
         });
         return;
       } else if (PIN && req.headers['x-pin'] !== PIN) {

@@ -346,12 +346,17 @@ function AuctionAppShell() {
 
       if (inInput || !vm) return;
 
-      if (route === 'operator' && isHostAuthenticated && (e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'z') {
-        e.preventDefault();
-        if (vm.canUndo) {
-          void sendCommand({ type: 'undo' });
+      if (
+        (route === 'operator' && isHostAuthenticated) ||
+        (route === 'bid' && (isHostAuthenticated || subOpRole === 'bids' || Boolean(bidderToken)))
+      ) {
+        if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'z') {
+          e.preventDefault();
+          if (vm.canUndo) {
+            void sendCommand({ type: 'undo' });
+          }
+          return;
         }
-        return;
       }
 
       if (e.ctrlKey || e.metaKey || e.altKey) return;
@@ -380,11 +385,11 @@ function AuctionAppShell() {
 
       // User Bidder Console shortcuts: keys 1-9, 0, and - place an instant bid (locked to bidderTeamId if using a token)
       if (route === 'bid' && vm.lot && /^([0-9]|-)$/.test(e.key)) {
-        if (!bidderToken && !hostToken) return;
+        if (!bidderToken && !hostToken && subOpRole !== 'bids') return;
         const idx = e.key === '-' ? 10 : e.key === '0' ? 9 : Number(e.key) - 1;
         const team = vm.teams[idx];
         if (!team) return;
-        if (bidderTeamId && !hostToken && team.id !== bidderTeamId) return;
+        if (bidderTeamId && !hostToken && subOpRole !== 'bids' && team.id !== bidderTeamId) return;
         if (team.lead || team.block) return;
         e.preventDefault();
         void sendCommand({ type: 'bid', team: team.id });
@@ -508,6 +513,7 @@ function AuctionAppShell() {
       ) : route === 'bid' ? (
         <BidderConsole
           vm={vm}
+          players={players}
           connected={connected}
           busy={busy}
           initialTeamId={initialBidderTeam ?? preferredTeamId}
