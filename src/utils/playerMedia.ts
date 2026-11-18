@@ -27,37 +27,52 @@ export const UPLOADED_PLAYER_PHOTOS: Record<string, string> = {
   'IPL-038': '/assets/aistudio/sai_sudharsan_f1dbf56a.png',
   'IPL-039': '/assets/aistudio/rajat_patidar_c6b6455d.png',
   'IPL-040': '/assets/aistudio/ajinkya_rahane_e12b8872.png',
+  'IPL-043': '/assets/aistudio/prithvi_shaw_d26a5ccc.png',
   'IPL-044': '/assets/aistudio/devdutt_padikkal_1ea21a76.png',
   'IPL-045': '/assets/aistudio/rahul_tripathi_1381a605.png',
   'IPL-048': '/assets/aistudio/faf_duplessis_3282e808.png',
   'IPL-050': '/assets/aistudio/kane_willamson_bc16f635.png',
   'IPL-051': '/assets/aistudio/Shimron-Hetmyer_b38b2558.png',
   'IPL-053': '/assets/aistudio/harry_brook_56462822.png',
+  'IPL-056': '/assets/aistudio/jasprit_bumrah_029a70c9.png',
   'IPL-058': '/assets/aistudio/arshdeep_singh_e182acef.png',
+  'IPL-059': '/assets/aistudio/kuldeep_yadav_6af8ab0a.png',
   'IPL-063': '/assets/aistudio/varun_chakravarthy_5ebbaace.jpg',
   'IPL-065': '/assets/aistudio/natarajan_5860450a.png',
   'IPL-066': '/assets/aistudio/deepak_chahar_a8a59de5.png',
   'IPL-067': '/assets/aistudio/Avesh_Khan_91e27353.jpg',
+  'IPL-068': '/assets/aistudio/khaleel_ahmed_d7f95f3d.png',
+  'IPL-069': '/assets/aistudio/mukesh_kumar_506dd6f6.jpg',
   'IPL-070': '/assets/aistudio/PRASIDH_KRISHNA_5d2002e3.jpg',
   'IPL-071': '/assets/aistudio/umeshYadav_fcb5c970.png',
   'IPL-075': '/assets/aistudio/matheesha_pathirana_2c7bb12b.png',
+  'IPL-076': '/assets/aistudio/kagiso_rabada_e44f0e24.png',
+  'IPL-077': '/assets/aistudio/josh_hazlewood_4a7c4eb0.png',
   'IPL-078': '/assets/aistudio/jofra_archer_f3b0af0e.png',
   'IPL-079': '/assets/aistudio/Anrich_Nortje_64e6eddc.jpg',
   'IPL-080': '/assets/aistudio/noor-ahmed_4f1034a4.png',
   'IPL-083': '/assets/aistudio/axar_patel_0f5e9471.png',
   'IPL-085': '/assets/aistudio/nitish_reddy_d0df6280.jpg',
   'IPL-086': '/assets/aistudio/washington_sundar_7fafce9f.jpeg',
+  'IPL-087': '/assets/aistudio/abhishek_sharma_fb9ca871.jpeg',
   'IPL-088': '/assets/aistudio/Riyan_Parag_8ca6a683.jpg',
   'IPL-090': '/assets/aistudio/Shardul_Thakur_61177de7.jpg',
+  'IPL-091': '/assets/aistudio/krunal_pandya_ce2b6961.png',
   'IPL-092': '/assets/aistudio/deepak_hooda_f5951b25.png',
   'IPL-097': '/assets/aistudio/andre_russell_884e242c.png',
   'IPL-099': '/assets/aistudio/cameron_green_904b72d1.jpg',
+  'IPL-100': '/assets/aistudio/pat_cummins_c7e09471.png',
   'IPL-105': '/assets/aistudio/Mitchell_Santner_81edd76e.png',
+  'IPL-107': '/assets/aistudio/kl_rahul_92b3fda4.png',
   'IPL-109': '/assets/aistudio/ishan_kishan_9924a057.png',
   'IPL-110': '/assets/aistudio/dhruv_jurel_04e70861.jpg',
   'IPL-111': '/assets/aistudio/jitesh_sharma_03a4abc1.png',
+  'IPL-114': '/assets/aistudio/Prabhsimran_Singh_f9313927.jpg',
   'IPL-115': '/assets/aistudio/Abhishek_porel_de49f301.jpg',
+  'IPL-116': '/assets/aistudio/anuj_rawat_244cdb7e.jpeg',
   'IPL-119': '/assets/aistudio/Vishnu_Vinod_fea5ae82.jpg',
+  'IPL-122': '/assets/aistudio/jos_buttler_9c531ee1.png',
+  'IPL-124': '/assets/aistudio/nicholas_pooran_0d53dd2b.png',
   'IPL-125': '/assets/aistudio/phil_salt_60a6bf11.jpeg',
   'IPL-131': '/assets/aistudio/Shashank_Singh_d3288b8f.jpg',
   'IPL-132': '/assets/aistudio/ashutosh_sharma_0ae82323.jpeg',
@@ -65,11 +80,14 @@ export const UPLOADED_PLAYER_PHOTOS: Record<string, string> = {
   'IPL-134': '/assets/aistudio/angkrish_raghuvanshi_0ef0a26d.png',
   'IPL-135': '/assets/aistudio/sameer_rizvi_eb3d06ca.png',
   'IPL-136': '/assets/aistudio/Ayush_Badoni_c84a7175.jpg',
+  'IPL-139': '/assets/aistudio/abdul_samad_4546d06b.png',
   'IPL-141': '/assets/aistudio/Atharva_Taide_7db6841d.jpg',
   'IPL-144': '/assets/aistudio/Shaik_Rasheed_b15ce741.jpg',
   'IPL-145': '/assets/aistudio/Musheer_Khan_78724971.jpg',
+  'IPL-146': '/assets/aistudio/priyansh_arya_8712e741.jpg',
   'IPL-156': '/assets/aistudio/harshit_rana_f0c7a1d5.jpg',
   'IPL-157': '/assets/aistudio/Mayank_Yadav_95db6776.jpg',
+  'IPL-160': '/assets/aistudio/mohsin_khan_ba8a0b0f.jpg',
   'IPL-161': '/assets/aistudio/AKASH_MADHWAL_b9c461ab.jpg',
   'IPL-166': '/assets/aistudio/rashik_salam_0f40b446.png',
 };
@@ -91,6 +109,21 @@ const DECK_ACCENTS: Record<number, { bg: string; ring: string; text: string }> =
   6: { bg: 'from-[#22243c] via-[#1c192f] to-[#0e0b21]', ring: 'border-[#9b7bf0]/40', text: 'text-[#e6defe]' },
   7: { bg: 'from-[#242c33] via-[#1c192f] to-[#0e0b21]', ring: 'border-[#3aa6a0]/40', text: 'text-[#a3e8e2]' },
 };
+
+const WIDE_CREST_BACKDROPS: Record<string, string> = {
+  'IPL-T01': 'radial-gradient(circle at 50% 50%, #5c0d25 0%, #560b22 72%, #47081c 100%)', // LSG
+  'IPL-T04': 'radial-gradient(circle at 50% 50%, #0257a6 0%, #014a91 68%, #01356b 100%)', // GT
+  'IPL-T05': 'radial-gradient(circle at 50% 50%, #e7007c 0%, #de0075 72%, #bd0062 100%)', // RR
+  'IPL-T06': 'radial-gradient(circle at 50% 45%, #f54e00 0%, #eb4200 68%, #cc3300 100%)', // SRH
+};
+
+export function isWideCrestFranchise(playerId: string): boolean {
+  return playerId in WIDE_CREST_BACKDROPS;
+}
+
+export function getWideCrestBackdrop(playerId: string): string | null {
+  return WIDE_CREST_BACKDROPS[playerId] ?? null;
+}
 
 export function getFranchiseBannerSrc(playerId: string): string | null {
   return UPLOADED_FRANCHISE_BANNERS[playerId] ?? null;
