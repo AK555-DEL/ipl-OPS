@@ -365,52 +365,29 @@ function AuctionAppShell() {
         return;
       }
 
-      // Bids Operator Console shortcuts: keys 1-9, 0, and - place an instant IPL slab bid for Team 1-11; Z undoes last bid
-      if (route === 'bids-op' && (isHostAuthenticated || subOpRole === 'bids')) {
-        if (e.key.toLowerCase() === 'z') {
-          if (vm.lot && vm.lot.trail.length > 0) {
-            e.preventDefault();
-            void sendCommand({ type: 'undobid', count: 1 });
-          }
-          return;
-        }
-        if (/^([0-9]|-)$/.test(e.key)) {
-          const idx = e.key === '-' ? 10 : e.key === '0' ? 9 : Number(e.key) - 1;
-          const team = vm.teams[idx];
-          if (!team) return;
-          e.preventDefault();
-          setBidsOpTeamId(team.id);
-          if (vm.lot && !team.lead && !team.block) {
-            void sendCommand({ type: 'bid', team: team.id });
-          }
-          return;
-        }
-      }
-
-      // User Bidder Console shortcuts: keys 1-9, 0, and - place an instant bid; Z undoes last bid/action
-      if (route === 'bid') {
-        if (!bidderToken && !hostToken) return;
-        if (e.key.toLowerCase() === 'z') {
-          if (vm.lot && vm.lot.trail.length > 0) {
-            if (!bidderTeamId || hostToken || vm.lot.team === bidderTeamId) {
-              e.preventDefault();
-              void sendCommand({ type: 'undobid', count: 1 });
-            }
-          } else if (hostToken && vm.canUndo) {
-            e.preventDefault();
-            void sendCommand({ type: 'undo' });
-          }
-          return;
-        }
-        if (vm.lot && /^([0-9]|-)$/.test(e.key)) {
-          const idx = e.key === '-' ? 10 : e.key === '0' ? 9 : Number(e.key) - 1;
-          const team = vm.teams[idx];
-          if (!team) return;
-          if (bidderTeamId && !hostToken && team.id !== bidderTeamId) return;
-          if (team.lead || team.block) return;
-          e.preventDefault();
+      // Bids Operator Console shortcuts: keys 1-9, 0, and - place an instant IPL slab bid for Team 1-11
+      if (route === 'bids-op' && (isHostAuthenticated || subOpRole === 'bids') && /^([0-9]|-)$/.test(e.key)) {
+        const idx = e.key === '-' ? 10 : e.key === '0' ? 9 : Number(e.key) - 1;
+        const team = vm.teams[idx];
+        if (!team) return;
+        e.preventDefault();
+        setBidsOpTeamId(team.id);
+        if (vm.lot && !team.lead && !team.block) {
           void sendCommand({ type: 'bid', team: team.id });
         }
+        return;
+      }
+
+      // User Bidder Console shortcuts: keys 1-9, 0, and - place an instant bid (locked to bidderTeamId if using a token)
+      if (route === 'bid' && vm.lot && /^([0-9]|-)$/.test(e.key)) {
+        if (!bidderToken && !hostToken) return;
+        const idx = e.key === '-' ? 10 : e.key === '0' ? 9 : Number(e.key) - 1;
+        const team = vm.teams[idx];
+        if (!team) return;
+        if (bidderTeamId && !hostToken && team.id !== bidderTeamId) return;
+        if (team.lead || team.block) return;
+        e.preventDefault();
+        void sendCommand({ type: 'bid', team: team.id });
       }
     };
 
@@ -531,7 +508,6 @@ function AuctionAppShell() {
       ) : route === 'bid' ? (
         <BidderConsole
           vm={vm}
-          players={players}
           connected={connected}
           busy={busy}
           initialTeamId={initialBidderTeam ?? preferredTeamId}
@@ -740,10 +716,9 @@ function AuctionAppShell() {
                 ['N (Operator)', 'Send next lot from Up Next queue to Arena'],
                 ['/ (Operator)', 'Focus player/title search & queue picker'],
                 ['Ctrl/Cmd + Z', 'Undo last auction event (Operator)'],
-                ['Z (/bids-op)', 'Undo latest misbid on current lot'],
                 ['1 – 9, 0, - (/bids-op & /bid)', 'Click/press team key for instant IPL slab auto-bid'],
                 ['/arena Screen', 'Display-only Team–Players Dashboard & Stage'],
-                ['/bids-op Screen', '1-click bidding & bid-history undo/revert'],
+                ['/bids-op Screen', '1-click team pad with automatic IPL increment slabs'],
               ].map(([key, desc]) => (
                 <div
                   key={key}

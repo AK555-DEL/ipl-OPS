@@ -2,37 +2,40 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   AlertCircle,
   ArrowRight,
+  CheckCircle2,
   Clock,
+  Crown,
+  Flame,
   Gavel,
   Home,
   KeyRound,
   LogIn,
   LogOut,
   Rocket,
-  RotateCcw,
-  Search,
   Share2,
+  Shield,
   SlidersHorizontal,
   Tv,
   Users,
   Wifi,
+  Zap,
 } from 'lucide-react';
-import type { AuctionViewModel, CommandBody, LotCategory, Player } from '../auction/types.ts';
+import type { AuctionViewModel, CommandBody, LotCategory } from '../auction/types.ts';
 import {
   formatCurrency,
   formatLakhs,
   formatPlayerCardMeta,
+  getIplBidIncrement,
 } from '../auction/engine.ts';
 import { useAuth } from '../contexts/AuthContext.tsx';
 import { useAudioSettings } from '../contexts/AudioSettingsContext.tsx';
 import { GlobalSoundControl } from './GlobalSoundControl.tsx';
 import { PlayerPortrait } from './PlayerPortrait.tsx';
-import { TeamLogoBadge } from './TeamLogoBadge.tsx';
+import { PlayerTeamLogoPill, TeamLogoBadge } from './TeamLogoBadge.tsx';
 import { useAuctionAudioCues } from '../hooks/useAuctionAudioCues.ts';
 
 interface BidderConsoleProps {
   vm: AuctionViewModel;
-  players: Player[];
   connected: boolean;
   busy: boolean;
   initialTeamId: string | null;
@@ -53,8 +56,6 @@ const CATEGORY_LABEL: Record<LotCategory, string> = {
   UNCAPPED: 'UNCAPPED · 2:00',
 };
 
-type PlayerFilter = 'ALL' | 'PENDING' | 'SOLD' | 'UNSOLD';
-
 function formatClock(sec: number): string {
   const clamped = Math.max(0, Math.floor(sec));
   const m = Math.floor(clamped / 60);
@@ -64,7 +65,6 @@ function formatClock(sec: number): string {
 
 export function BidderConsole({
   vm,
-  players,
   connected,
   busy,
   initialTeamId,
@@ -95,11 +95,10 @@ export function BidderConsole({
     }
     return vm.teams[0]?.id ?? 't1';
   });
+  const [customCr, setCustomCr] = useState('');
   const [tokenInput, setTokenInput] = useState('');
   const [tokenError, setTokenError] = useState<string | null>(null);
   const [redeeming, setRedeeming] = useState(false);
-  const [playerQuery, setPlayerQuery] = useState('');
-  const [playerFilter, setPlayerFilter] = useState<PlayerFilter>('ALL');
   const [nowMs, setNowMs] = useState(() => Date.now());
 
   const isLockedBidder = Boolean(bidderToken && bidderTeamId);
@@ -134,10 +133,10 @@ export function BidderConsole({
       setMyTeamId(bidderTeamId);
       return;
     }
-    if (initialTeamId && vm.teams.some((t) => t.id === initialTeamId)) {
+    if (isHostOverride && initialTeamId && vm.teams.some((t) => t.id === initialTeamId)) {
       setMyTeamId(initialTeamId);
     }
-  }, [initialTeamId, bidderTeamId, vm.teams]);
+  }, [bidderTeamId, initialTeamId, isHostOverride, vm.teams]);
 
   useEffect(() => {
     const offset = vm.serverNow ? Date.now() - vm.serverNow : 0;
@@ -155,8 +154,18 @@ export function BidderConsole({
 
   const lot = vm.lot;
   const remainingSec = lot ? Math.max(0, Math.ceil((lot.expiresAt - nowMs) / 1000)) : 0;
+  const leader = lot?.team ? vm.teams.find((t) => t.id === lot.team) ?? null : null;
 
   useAuctionAudioCues(vm, remainingSec, !muted);
+
+  const handleSelectTeam = (teamId: string) => {
+    if (isLockedBidder) return;
+    setMyTeamId(teamId);
+    const nextUrl = `/bid?team=${encodeURIComponent(teamId)}`;
+    if (`${window.location.pathname}${window.location.search}` !== nextUrl) {
+      window.history.replaceState({}, '', nextUrl);
+    }
+  };
 
   const handleTokenJoin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -178,79 +187,48 @@ export function BidderConsole({
     onToast(`Joined room as ${res.name || res.short}`);
   };
 
-  // One-click automatic bid placement by clicking a team number or franchise
-  const handleDirectTeamBid = async (teamId: string) => {
-    if (!lot || busy || !hasRoomAccess) return;
-    if (isLockedBidder && bidderTeamId && teamId !== bidderTeamId) return;
-    const targetTeam = vm.teams.find((t) => t.id === teamId);
-    if (!targetTeam) return;
-    if (!isLockedBidder) setMyTeamId(teamId);
-    if (targetTeam.lead) {
-      onToast(`${targetTeam.short} already leads this lot`);
+  const activeIncrement = lot ? getIplBidIncrement(lot.price) : 25;
+
+  const handleAutoBid = async () => {
+    if (!lot || busy || !myTeam || !hasRoomAccess) return;
+    if (myTeam.lead) {
+      onToast(`${myTeam.short} already holds the highest bid`);
       return;
     }
-    if (targetTeam.block) {
-      onToast(`${targetTeam.short}: ${targetTeam.block}`);
+    if (myTeam.block) {
+      onToast(`${myTeam.short}: ${myTeam.block}`);
       return;
     }
-    await onSend({ type: 'bid', team: targetTeam.id });
+    await onSend({ type: 'bid', team: myTeam.id });
   };
 
-  const canUndoLatestBid = Boolean(
-    lot &&
-      lot.trail.length > 0 &&
-      !busy &&
-      hasRoomAccess &&
-      (!isLockedBidder || myTeam.lead)
-  );
-  const canRevertHistory = Boolean(lot && lot.trail.length > 0 && !busy && isHostOverride);
-  const canUndoAction = Boolean(vm.canUndo && !busy && isHostOverride);
-
-  const handleUndoBid = async () => {
-    if (!canUndoLatestBid) return;
-    await onSend({ type: 'undobid', count: 1 });
-  };
-
-  const handleRevertToBid = async (toIndex: number) => {
-    if (!canRevertHistory) return;
-    await onSend({ type: 'undobid', toIndex });
-  };
-
-  const handleUndoAction = async () => {
-    if (!canUndoAction) return;
-    await onSend({ type: 'undo' });
-  };
-
-  // Map sold players & sold franchise titles to their owning team & price
-  const soldByPid = useMemo(() => {
-    const map = new Map<string, { short: string; color: string; price: number }>();
-    for (const t of vm.teams) {
-      if (t.titleId) {
-        map.set(t.titleId, { short: t.short, color: t.c, price: t.titlePrice });
-      }
-      for (const sp of t.squad) {
-        map.set(sp.id, { short: t.short, color: t.c, price: sp.price });
-      }
+  const handleCustomBid = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!lot || busy || !myTeam || !hasRoomAccess) return;
+    if (myTeam.lead) {
+      onToast(`${myTeam.short} already holds the highest bid`);
+      return;
     }
-    return map;
-  }, [vm.teams]);
+    if (myTeam.block) {
+      onToast(`${myTeam.short}: ${myTeam.block}`);
+      return;
+    }
+    const raw = customCr.trim();
+    if (!raw || raw.includes(',') || !/^\d+(\.\d+)?$/.test(raw)) {
+      onToast('Enter bid in Cr (e.g. 4.50)');
+      return;
+    }
+    const lakhs = Math.round(Number(raw) * 100);
+    const ok = await onSend({ type: 'custom', team: myTeam.id, price: lakhs });
+    if (ok) setCustomCr('');
+  };
 
-  const filteredPlayers = useMemo(() => {
-    const q = playerQuery.trim().toLowerCase();
-    return players.filter((p) => {
-      const st = vm.status[p.id];
-      if (playerFilter === 'PENDING' && (st || lot?.p.id === p.id)) return false;
-      if (playerFilter === 'SOLD' && st !== 'sold') return false;
-      if (playerFilter === 'UNSOLD' && st !== 'unsold') return false;
-      if (!q) return true;
-      return (
-        p.name.toLowerCase().includes(q) ||
-        p.id.toLowerCase().includes(q) ||
-        p.role.toLowerCase().includes(q) ||
-        p.country.toLowerCase().includes(q)
-      );
-    });
-  }, [players, vm.status, lot?.p.id, playerFilter, playerQuery]);
+  const iplSlabs = [
+    { range: '< ₹4 Cr', step: '+₹25 L', inc: 25 },
+    { range: '₹4–10 Cr', step: '+₹50 L', inc: 50 },
+    { range: '₹10–20 Cr', step: '+₹1.00 Cr', inc: 100 },
+    { range: '> ₹20 Cr', step: '+₹2.00 Cr', inc: 200 },
+  ] as const;
 
   const headerBar = (
     <header className="h-12 bg-[#0e0b21] border-b border-[#504533] px-3.5 flex items-center justify-between gap-2 shrink-0">
@@ -447,8 +425,8 @@ export function BidderConsole({
     >
       {headerBar}
 
-      {/* Room Identity Bar when locked to a single team token */}
-      {isLockedBidder && (
+      {/* Room Identity Bar: Locked Team Token Badge (for Bidders) OR Host Team Switcher (for Host) */}
+      {isLockedBidder ? (
         <section
           className="bg-[#1c192f] border-b border-[#504533] px-3.5 py-1.5 flex items-center justify-between gap-2 shrink-0 flex-wrap"
           data-testid="locked-team-banner"
@@ -458,6 +436,11 @@ export function BidderConsole({
             <span className="font-[Space_Grotesk] text-sm font-extrabold text-[#ffdb9f] truncate">
               {myTeam.name} ({myTeam.short})
             </span>
+            {myTeam.titleSubFranchise && (
+              <span className="hidden xl:inline px-1.5 py-0.5 rounded bg-[#fdb813]/15 border border-[#fdb813]/40 font-[JetBrains_Mono] text-[9px] font-bold text-[#fdb813]">
+                Sub: {myTeam.titleSubFranchise}
+              </span>
+            )}
             <span className="px-2 py-0.5 rounded bg-[#00a572]/20 border border-[#4edea3]/50 font-[JetBrains_Mono] text-[10px] font-bold text-[#4edea3]">
               TOKEN: {bidderToken}
             </span>
@@ -467,29 +450,91 @@ export function BidderConsole({
             </span>
           </div>
 
-          <button
-            type="button"
-            onClick={() => {
-              leaveBidderRoom();
-              onToast('Left team room — enter a new token to switch teams');
-            }}
-            data-testid="leave-room-btn"
-            className="px-2 py-0.5 rounded border border-[#ffb4ab]/40 text-[#ffb4ab] hover:bg-[#93000a]/30 flex items-center gap-1 font-[JetBrains_Mono] text-[10px] font-bold"
-          >
-            <LogOut className="w-3 h-3" />
-            <span>Leave Room</span>
-          </button>
+          <div className="flex items-center gap-2 shrink-0 font-[JetBrains_Mono] text-[10px]">
+            <span
+              className={`px-2 py-0.5 rounded border font-bold ${
+                myTeam.bowlersNeeded === 0
+                  ? 'bg-[#00a572]/20 border-[#4edea3]/50 text-[#4edea3]'
+                  : 'bg-[#141026] border-[#fdb813]/40 text-[#fdb813]'
+              }`}
+            >
+              BOWL {myTeam.bowlers}/{vm.cfg.minBowlers}
+            </span>
+            <span
+              className={`px-2 py-0.5 rounded border font-bold ${
+                myTeam.wicketkeepersNeeded === 0
+                  ? 'bg-[#00a572]/20 border-[#4edea3]/50 text-[#4edea3]'
+                  : 'bg-[#141026] border-[#fdb813]/40 text-[#fdb813]'
+              }`}
+            >
+              WK {myTeam.wicketkeepers}/{vm.cfg.minWicketkeepers}
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                leaveBidderRoom();
+                onToast('Left team room — enter a new token to switch teams');
+              }}
+              data-testid="leave-room-btn"
+              className="px-2 py-0.5 rounded border border-[#ffb4ab]/40 text-[#ffb4ab] hover:bg-[#93000a]/30 flex items-center gap-1 font-bold"
+            >
+              <LogOut className="w-3 h-3" />
+              <span>Leave Room</span>
+            </button>
+          </div>
+        </section>
+      ) : (
+        <section className="bg-[#1c192f] border-b border-[#504533] px-3.5 py-1.5 shrink-0">
+          <div className="flex items-center justify-between gap-2 mb-1">
+            <span className="font-[JetBrains_Mono] text-[10px] text-[#fdb813] font-bold uppercase tracking-wider">
+              HOST OVERRIDE TEST MODE · SELECT CLUB SLOT (KEYS 1–0, - BID)
+            </span>
+            <span className="font-[JetBrains_Mono] text-[10px] text-[#9d8f79]">
+              Bidders with tokens are locked to their assigned team
+            </span>
+          </div>
+          <div className="grid grid-cols-4 sm:grid-cols-6 xl:grid-cols-11 gap-1">
+            {vm.teams.map((t) => {
+              const active = t.id === myTeam.id;
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => handleSelectTeam(t.id)}
+                  data-testid={`bidder-select-${t.id}`}
+                  className={`px-1.5 py-1 rounded border text-left transition-all flex items-center justify-between gap-1 ${
+                    active
+                      ? 'bg-[#2b273e] border-2 border-[#fdb813] text-[#fdb813] bidder-active-ring'
+                      : 'bg-[#141026] border-[#504533] hover:border-[#9d8f79] text-[#d5c4ac]'
+                  }`}
+                >
+                  <div className="flex items-center gap-1 min-w-0">
+                    {t.short === 'DC' || t.titleId === 'IPL-T03' ? (
+                      <TeamLogoBadge team={t} size="xs" className="w-3.5 h-3.5 rounded-sm" />
+                    ) : (
+                      <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: t.c }} />
+                    )}
+                    <span className="font-[JetBrains_Mono] text-[11px] font-bold text-[#e6defe] truncate">
+                      {t.short}
+                    </span>
+                  </div>
+                  <span className="font-[JetBrains_Mono] text-[9px] text-[#4edea3] shrink-0">
+                    {t.n}/{vm.cfg.max}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </section>
       )}
 
-      {/* Main Split: Left 1-Click Team/Franchise Pad + Right Side Panel (Undo Actions + Bidding History + All Players) */}
+      {/* Main Split sized cleanly for 1280x720 laptops */}
       <main className="flex-1 grid grid-cols-12 gap-2.5 p-2.5 overflow-y-auto lg:overflow-hidden min-h-0">
-        {/* LEFT (7 cols): ACTIVE LOT & 1-CLICK TEAM NUMBER / FRANCHISE PAD */}
-        <section className="col-span-12 lg:col-span-7 flex flex-col gap-2.5 bg-[#0e0b21] border-2 border-[#504533] rounded-lg p-3 min-h-0">
+        {/* LEFT: ACTIVE LOT BIDDING PAD */}
+        <section className="col-span-12 lg:col-span-8 flex flex-col justify-between bg-[#0e0b21] border-2 border-[#504533] rounded-lg p-3 min-h-0">
           {lot ? (
             <>
-              {/* Active Lot Header (without "which team is bidding at what price" clutter) */}
-              <div className="flex items-center justify-between gap-2.5 border-b border-[#504533] pb-2.5 shrink-0">
+              <div className="flex items-center justify-between gap-2.5 flex-wrap border-b border-[#504533] pb-2">
                 <div className="flex items-center gap-2.5 min-w-0">
                   <div className="w-14 h-14 rounded border border-[#504533] overflow-hidden shrink-0 bg-[#1c192f]">
                     <PlayerPortrait player={lot.p} size="md" className="w-full h-full" />
@@ -499,6 +544,12 @@ export function BidderConsole({
                       <span className="px-1.5 py-0.5 rounded bg-[#201d33] border border-[#504533] font-[JetBrains_Mono] text-[10px] text-[#fdb813] font-bold">
                         {lot.p.id} · {CATEGORY_LABEL[lot.category]}
                       </span>
+                      {lot.bidCount >= 3 && (
+                        <span className="px-1.5 py-0.5 rounded bg-[#93000a]/50 border border-[#ffb4ab] font-[JetBrains_Mono] text-[10px] text-[#ffdb9f] font-black flex items-center gap-1 animate-pulse">
+                          <Flame className="w-3 h-3 text-[#fdb813]" />
+                          <span>BIDDING WAR</span>
+                        </span>
+                      )}
                     </div>
                     <h1 className="font-[Space_Grotesk] text-xl xl:text-2xl font-extrabold text-[#e6defe] uppercase leading-tight mt-0.5 truncate">
                       {lot.p.name}
@@ -522,130 +573,146 @@ export function BidderConsole({
                 </div>
               </div>
 
-              {/* Direct 1-Click Team Pad */}
-              <div className="flex-1 min-h-0 flex flex-col gap-2">
-                <div className="flex items-center justify-between gap-2 shrink-0 flex-wrap">
-                  <div className="flex items-center gap-2">
-                    <Gavel className="w-4 h-4 text-[#fdb813]" />
-                    <span className="font-[Space_Grotesk] text-sm font-extrabold uppercase tracking-wide text-[#e6defe]">
-                      {isLockedBidder
-                        ? 'Click Your Franchise to Bid'
-                        : 'Click Team Number or Franchise to Place Bid'}
-                    </span>
-                  </div>
-                  <span className="font-[JetBrains_Mono] text-[10px] text-[#4edea3] font-bold">
-                    {isLockedBidder ? '1-CLICK BID' : 'KEYS 1–9, 0, - · 1-CLICK BID'}
+              <div className="my-2 grid grid-cols-1 md:grid-cols-2 gap-2.5 items-center bg-[#1c192f] border border-[#504533] rounded-lg p-3">
+                <div>
+                  <span className="font-[JetBrains_Mono] text-[10px] text-[#9d8f79] uppercase block">
+                    {leader ? 'CURRENT HIGHEST BID ON FLOOR' : 'OPENING BASE PRICE'}
                   </span>
+                  <div
+                    className="font-[JetBrains_Mono] text-3xl xl:text-4xl font-extrabold text-[#fdb813] tracking-tight leading-none mt-1"
+                    data-testid="bidder-price"
+                  >
+                    ₹ {formatLakhs(lot.price)}
+                  </div>
                 </div>
 
-                {isLockedBidder ? (
-                  <div className="flex-1 flex items-center justify-center" data-testid="bidder-team-pad">
-                    <button
-                      type="button"
-                      disabled={busy || myTeam.lead || Boolean(myTeam.block)}
-                      onClick={() => void handleDirectTeamBid(myTeam.id)}
-                      data-testid={`bidder-team-${myTeam.id}`}
-                      className="w-full max-w-md min-h-[140px] rounded-xl border-2 px-6 py-5 flex flex-col items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed bg-[#fdb813] hover:bg-[#ffbb1e] border-[#ffdb9f] text-[#271900] shadow-lg"
+                <div className="bg-[#0e0b21] border border-[#504533] rounded p-2.5 flex items-center justify-between gap-2">
+                  {leader ? (
+                    <>
+                      <div className="flex items-center gap-2 min-w-0">
+                        <TeamLogoBadge team={leader} size="sm" />
+                        <div className="min-w-0">
+                          <span className="font-[JetBrains_Mono] text-[9px] text-[#fdb813] font-bold uppercase block">
+                            {leader.id === myTeam.id ? '★ YOUR TEAM LEADS!' : 'HIGHEST BIDDER'}
+                          </span>
+                          <span className="font-[Space_Grotesk] text-sm font-bold text-[#e6defe] truncate block">
+                            {leader.name}
+                          </span>
+                        </div>
+                      </div>
+                      {leader.id === myTeam.id && (
+                        <CheckCircle2 className="w-5 h-5 text-[#4edea3] shrink-0" />
+                      )}
+                    </>
+                  ) : (
+                    <div className="font-[JetBrains_Mono] text-[11px] text-[#d5c4ac] flex items-center gap-1.5">
+                      <Zap className="w-4 h-4 text-[#fdb813] shrink-0" />
+                      <span>Tap &ldquo;OPEN AT BASE&rdquo; to bid automatically as {myTeam.short}!</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex-1 flex flex-col justify-between gap-3 bg-[#1c192f]/90 border border-[#504533] rounded-lg p-3.5 min-h-0">
+                <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
+                  <div className="flex items-center gap-2 font-[JetBrains_Mono] text-[11px]">
+                    <span className="text-[#9d8f79] uppercase">BIDDING AS:</span>
+                    <span
+                      className="px-2 py-0.5 rounded font-bold border border-[#fdb813]/40"
+                      style={{ backgroundColor: myTeam.badgeBg, color: myTeam.badgeText }}
                     >
-                      <div className="flex items-center gap-3">
-                        <TeamLogoBadge team={myTeam} size="sm" />
-                        <span className="font-[Space_Grotesk] text-2xl sm:text-3xl font-black tracking-tight">
-                          {myTeam.paddle} · {myTeam.short}
+                      {myTeam.name} ({myTeam.short})
+                    </span>
+                  </div>
+                  {myTeam.lead ? (
+                    <span className="font-[JetBrains_Mono] text-[11px] font-bold text-[#4edea3]">
+                      You hold the highest bid — wait for a challenger
+                    </span>
+                  ) : myTeam.block ? (
+                    <span className="font-[JetBrains_Mono] text-[11px] font-bold text-[#ffb4ab]">
+                      Blocked: {myTeam.block}
+                    </span>
+                  ) : (
+                    <span className="font-[JetBrains_Mono] text-[10px] text-[#4edea3]">
+                      AUTO-INCREMENT BY IPL SLAB
+                    </span>
+                  )}
+                </div>
+
+                {/* IPL Auto-Increment Slabs */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 mb-2.5 font-[JetBrains_Mono] text-[10px]">
+                  {iplSlabs.map((slab) => {
+                    const isActive = lot.team !== null && activeIncrement === slab.inc;
+                    return (
+                      <div
+                        key={slab.range}
+                        className={`px-2 py-1 rounded border flex items-center justify-between gap-1 ${
+                          isActive
+                            ? 'bg-[#fdb813]/20 border-[#fdb813] text-[#ffdb9f] font-extrabold'
+                            : 'bg-[#141026] border-[#504533]/70 text-[#9d8f79]'
+                        }`}
+                      >
+                        <span>{slab.range}</span>
+                        <span className={isActive ? 'text-[#fdb813]' : 'text-[#4edea3] font-bold'}>
+                          {slab.step}
                         </span>
                       </div>
-                      <span className="font-[Space_Grotesk] text-sm font-bold text-[#271900]/90">
-                        {myTeam.name}
-                      </span>
-                      <span className="font-[JetBrains_Mono] text-xs font-extrabold uppercase px-2.5 py-0.5 rounded bg-[#271900]/15">
-                        {myTeam.lead
-                          ? 'Leading Lot'
-                          : myTeam.block
-                            ? `Blocked: ${myTeam.block}`
-                            : 'Tap to Place Bid'}
-                      </span>
-                    </button>
-                  </div>
-                ) : (
-                  <div
-                    className="flex-1 min-h-0 overflow-y-auto custom-scroll grid grid-cols-2 sm:grid-cols-3 gap-2.5 content-start pr-0.5"
-                    data-testid="bidder-team-pad"
+                    );
+                  })}
+                </div>
+
+                <div data-testid="bidder-jump-grid" className="flex-1 flex flex-col justify-center min-h-[100px]">
+                  <button
+                    type="button"
+                    disabled={busy || myTeam.lead || Boolean(myTeam.block)}
+                    onClick={() => void handleAutoBid()}
+                    data-testid="bidder-auto-bid-btn"
+                    className="w-full h-full min-h-[96px] max-h-[180px] rounded-xl border-2 px-4 py-4 flex flex-col items-center justify-center transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed bg-[#fdb813] hover:bg-[#ffbb1e] border-[#ffdb9f] text-[#271900] shadow-lg"
                   >
-                    {vm.teams.map((t, index) => {
-                      const hotkey = index === 9 ? '0' : index === 10 ? '-' : String(index + 1);
-                      const teamNumber = index + 1;
-                      const disabled = busy || t.lead || Boolean(t.block);
+                    <span className="font-[Space_Grotesk] text-2xl sm:text-3xl font-black leading-none tracking-tight">
+                      {lot.team === null
+                        ? `OPEN AT BASE · ₹${formatLakhs(lot.price)}`
+                        : `BID +₹${formatLakhs(activeIncrement)} → ₹${formatLakhs(lot.next)}`}
+                    </span>
+                    <span className="font-[JetBrains_Mono] text-xs font-bold text-[#271900]/80 mt-1.5">
+                      {myTeam.lead
+                        ? `${myTeam.short} holds highest bid`
+                        : myTeam.block
+                          ? `Blocked: ${myTeam.block}`
+                          : `Click to place automatic bid as ${myTeam.name} (${myTeam.short})`}
+                    </span>
+                  </button>
+                </div>
 
-                      return (
-                        <button
-                          key={t.id}
-                          type="button"
-                          disabled={disabled}
-                          onClick={() => void handleDirectTeamBid(t.id)}
-                          data-testid={`bidder-team-${t.id}`}
-                          aria-label={`Place bid for Team ${teamNumber} ${t.name} (${t.short})`}
-                          className={`rounded-xl border-2 p-3 text-left flex flex-col justify-between gap-2.5 transition-all active:scale-[0.98] min-h-[108px] ${
-                            t.lead
-                              ? 'bg-[#00a572]/20 border-[#4edea3] text-[#e6defe] cursor-default'
-                              : t.block
-                                ? 'bg-[#1c192f]/40 border-[#93000a]/60 text-[#9d8f79] opacity-55 cursor-not-allowed'
-                                : 'bg-[#1c192f] hover:bg-[#2b273e] border-[#504533] hover:border-[#fdb813] text-[#e6defe]'
-                          }`}
-                        >
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="flex items-center gap-2 min-w-0">
-                              <TeamLogoBadge team={t} size="sm" />
-                              <div className="min-w-0">
-                                <div className="font-[JetBrains_Mono] text-xs font-extrabold text-[#fdb813] leading-none">
-                                  #{teamNumber}{' '}
-                                  <span className="text-[10px] text-[#9d8f79] font-normal">
-                                    [{hotkey}]
-                                  </span>
-                                </div>
-                                <div className="font-[Space_Grotesk] text-sm font-extrabold text-[#e6defe] truncate mt-0.5">
-                                  {t.short}
-                                </div>
-                              </div>
-                            </div>
-                            <span className="font-[JetBrains_Mono] text-[10px] text-[#9d8f79] shrink-0">
-                              {t.n}/{vm.cfg.max}
-                            </span>
-                          </div>
-
-                          <div className="font-[Inter] text-xs font-medium text-[#d5c4ac] truncate">
-                            {t.name}
-                          </div>
-
-                          <div className="flex items-center justify-between gap-1 pt-1 border-t border-[#2b273e] font-[JetBrains_Mono] text-[10px]">
-                            <span className="text-[#9d8f79]">OS {t.os}/{vm.cfg.os}</span>
-                            {t.lead ? (
-                              <span className="px-2 py-0.5 rounded bg-[#00a572] text-[#002113] font-extrabold">
-                                LEADING
-                              </span>
-                            ) : t.block ? (
-                              <span className="text-[#ffb4ab] font-bold truncate max-w-[115px]">
-                                {t.block}
-                              </span>
-                            ) : (
-                              <span className="px-2 py-0.5 rounded bg-[#fdb813] text-[#271900] font-extrabold">
-                                BID
-                              </span>
-                            )}
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
+                <form onSubmit={handleCustomBid} className="flex items-center gap-2 mt-2.5">
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={customCr}
+                    onChange={(e) => setCustomCr(e.target.value)}
+                    placeholder={`Custom bid in Cr for ${myTeam.short} (e.g. 6.50)`}
+                    aria-label="Custom bid in crore"
+                    className="flex-1 bg-[#141026] border border-[#504533] rounded px-3 py-2 text-xs text-[#e6defe] placeholder:text-[#9d8f79] font-[JetBrains_Mono] focus:outline-none focus:border-[#fdb813]"
+                  />
+                  <button
+                    type="submit"
+                    disabled={busy || myTeam.lead || Boolean(myTeam.block)}
+                    className="px-3.5 py-2 rounded bg-[#00a572] hover:bg-[#00a572]/90 text-[#002113] border border-[#4edea3] font-[JetBrains_Mono] text-xs font-extrabold disabled:opacity-40 whitespace-nowrap"
+                  >
+                    PLACE CUSTOM BID
+                  </button>
+                </form>
               </div>
             </>
           ) : (
-            <div className="my-auto text-center space-y-3 py-6">
+            <div className="my-auto text-center space-y-3 py-4">
               <Gavel className="w-10 h-10 text-[#fdb813] mx-auto" />
               <h1 className="font-[Space_Grotesk] text-2xl font-extrabold text-[#ffdb9f]">
-                Waiting For Next Lot
+                Waiting For Host To Release Next Lot
               </h1>
               <p className="font-[JetBrains_Mono] text-xs text-[#d5c4ac] max-w-md mx-auto">
-                Click any team number or franchise as soon as the next player or title enters the floor.
+                Keep this console open as <strong className="text-[#fdb813]">{myTeam.name}</strong>.
+                Auto-bid unlocks the moment a lot enters the Arena.
               </p>
               {vm.upNext.length > 0 && (
                 <div className="max-w-2xl mx-auto pt-2">
@@ -673,259 +740,98 @@ export function BidderConsole({
           )}
         </section>
 
-        {/* RIGHT SIDE PANEL (5 cols): UNDO ACTIONS + BIDDING HISTORY + ALL PLAYERS */}
-        <aside className="col-span-12 lg:col-span-5 flex flex-col gap-2.5 min-h-0 overflow-hidden">
-          {/* TOP PANEL: UNDO ACTIONS & BIDDING HISTORY */}
-          <div
-            className="bg-[#0e0b21] border border-[#504533] rounded-lg flex flex-col max-h-[45%] min-h-[200px] shrink-0 overflow-hidden"
-            data-testid="bidder-bid-history"
-          >
-            <div className="px-3 py-2 bg-[#1c192f] border-b border-[#504533] flex items-center justify-between gap-2 flex-wrap shrink-0">
-              <div className="flex items-center gap-1.5">
-                <RotateCcw className="w-3.5 h-3.5 text-[#fdb813]" />
-                <span className="font-[Space_Grotesk] text-xs font-extrabold uppercase tracking-wide text-[#ffdb9f]">
-                  Bidding History {lot ? `(${lot.trail.length})` : ''}
-                </span>
-              </div>
-
-              <div className="flex items-center gap-1.5">
-                <button
-                  type="button"
-                  disabled={!canUndoLatestBid}
-                  onClick={() => void handleUndoBid()}
-                  data-testid="bidder-undo-bid-btn"
-                  title="Undo latest bid on current lot (Shortcut: Z)"
-                  className="px-2.5 py-1 rounded bg-[#93000a]/55 hover:bg-[#93000a]/85 border border-[#ffb4ab]/60 text-[#ffb4ab] font-[JetBrains_Mono] text-[10px] font-extrabold flex items-center gap-1 disabled:opacity-35 disabled:cursor-not-allowed"
-                >
-                  <RotateCcw className="w-3 h-3" />
-                  <span>Undo Bid</span>
-                </button>
-
-                {isHostOverride && (
-                  <button
-                    type="button"
-                    disabled={!canUndoAction}
-                    onClick={() => void handleUndoAction()}
-                    data-testid="bidder-undo-action-btn"
-                    title="Undo the last auction action (bid, hammer, or lot call)"
-                    className="px-2.5 py-1 rounded bg-[#201d33] hover:bg-[#2b273e] border border-[#fdb813]/60 text-[#ffdb9f] font-[JetBrains_Mono] text-[10px] font-bold flex items-center gap-1 disabled:opacity-35 disabled:cursor-not-allowed"
-                  >
-                    <RotateCcw className="w-3 h-3 text-[#fdb813]" />
-                    <span>Undo Action</span>
-                  </button>
-                )}
-              </div>
-            </div>
-
-            <div className="flex-1 min-h-0 overflow-y-auto custom-scroll p-2 space-y-1 font-[JetBrains_Mono] text-[10px]">
-              {lot ? (
-                lot.trail.length === 0 ? (
-                  <div className="text-center text-[#9d8f79] py-6">
-                    No bids placed yet on <strong className="text-[#e6defe]">{lot.p.name}</strong>.
-                  </div>
-                ) : (
-                  <>
-                    {[...lot.trail]
-                      .map((b, bidIdx) => {
-                        const prevPrice = bidIdx === 0 ? lot.p.base : lot.trail[bidIdx - 1].price;
-                        const delta = Math.max(0, b.price - prevPrice);
-                        return { ...b, bidIdx, delta };
-                      })
-                      .reverse()
-                      .map((b) => {
-                        const tm = vm.teams.find((x) => x.id === b.team);
-                        const teamIdx = vm.teams.findIndex((x) => x.id === b.team);
-                        const teamNum = teamIdx >= 0 ? `#${teamIdx + 1}` : '';
-                        const isLatest = b.bidIdx === lot.trail.length - 1;
-                        return (
-                          <div
-                            key={`${b.team}-${b.price}-${b.bidIdx}`}
-                            data-testid={`bidder-history-row-${b.bidIdx}`}
-                            className={`px-2.5 py-1.5 rounded flex items-center justify-between gap-2 ${
-                              isLatest
-                                ? 'bg-[#fdb813]/15 border border-[#fdb813]/50 text-[#fdb813] font-bold'
-                                : 'bg-[#1c192f] border border-[#2b273e] text-[#d5c4ac]'
-                            }`}
-                          >
-                            <div className="flex items-center gap-2 min-w-0">
-                              <span className="text-[9px] text-[#9d8f79] whitespace-nowrap min-w-[2.25rem] shrink-0">
-                                Bid {b.bidIdx + 1}
-                              </span>
-                              <span
-                                className="w-2 h-2 rounded-full shrink-0"
-                                style={{ backgroundColor: tm?.c ?? '#fdb813' }}
-                              />
-                              <span className="truncate">
-                                {teamNum} {tm?.short || b.team} · {tm?.name || b.team}
-                              </span>
-                            </div>
-
-                            <div className="flex items-center gap-1.5 shrink-0">
-                              <span className="text-[9px] text-[#4edea3]">
-                                {b.bidIdx === 0 ? 'BASE' : `+₹${formatLakhs(b.delta)}`}
-                              </span>
-                              <span className="font-bold">{formatCurrency(b.price)}</span>
-                              {isLatest && canUndoLatestBid && (
-                                <button
-                                  type="button"
-                                  onClick={() => void handleUndoBid()}
-                                  data-testid={`bidder-undo-entry-${b.bidIdx}`}
-                                  className="px-2 py-0.5 rounded bg-[#93000a]/70 hover:bg-[#93000a] text-[#ffb4ab] text-[9px] font-extrabold"
-                                >
-                                  Undo
-                                </button>
-                              )}
-                              {!isLatest && canRevertHistory && (
-                                <button
-                                  type="button"
-                                  onClick={() => void handleRevertToBid(b.bidIdx)}
-                                  data-testid={`bidder-revert-${b.bidIdx}`}
-                                  className="px-2 py-0.5 rounded bg-[#201d33] hover:bg-[#2b273e] border border-[#504533] hover:border-[#fdb813] text-[#ffdb9f] text-[9px] font-bold"
-                                >
-                                  Revert
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    {canRevertHistory && (
-                      <div className="pt-1 flex items-center justify-between px-2.5 py-1 rounded bg-[#141026] border border-[#2b273e] text-[#9d8f79]">
-                        <span>Base · {formatCurrency(lot.p.base)}</span>
-                        <button
-                          type="button"
-                          onClick={() => void handleRevertToBid(-1)}
-                          data-testid="bidder-clear-bids-btn"
-                          className="px-2 py-0.5 rounded bg-[#93000a]/50 hover:bg-[#93000a]/80 text-[#ffb4ab] text-[9px] font-bold"
-                        >
-                          Clear All Bids
-                        </button>
-                      </div>
-                    )}
-                  </>
-                )
-              ) : vm.recentBids.length === 0 ? (
-                <div className="text-center text-[#9d8f79] py-6">
-                  No bidding history recorded yet.
-                </div>
-              ) : (
-                vm.recentBids.map((rb) => (
-                  <div
-                    key={rb.id}
-                    className="px-2.5 py-1.5 rounded bg-[#1c192f] border border-[#2b273e] flex items-center justify-between gap-2 text-[#d5c4ac]"
-                  >
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      <span
-                        className="w-2 h-2 rounded-full shrink-0"
-                        style={{ backgroundColor: rb.teamColor }}
-                      />
-                      <span className="font-bold text-[#e6defe] shrink-0">{rb.teamShort}</span>
-                      <span className="truncate text-[#9d8f79]">· {rb.lotName}</span>
-                    </div>
-                    <span className="font-bold text-[#fdb813] shrink-0">
-                      {formatCurrency(rb.price)}
+        {/* RIGHT: TEAM SQUAD & COMPLIANCE */}
+        <aside className="col-span-12 lg:col-span-4 bg-[#0e0b21] border border-[#504533] rounded-lg flex flex-col overflow-hidden min-h-0">
+          <div className="p-3 bg-[#1c192f] border-b border-[#504533] shrink-0">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <TeamLogoBadge team={myTeam} size="sm" />
+                <div className="min-w-0">
+                  <h2 className="font-[Space_Grotesk] text-sm font-bold text-[#e6defe] truncate">
+                    {myTeam.name}
+                  </h2>
+                  <div className="font-[JetBrains_Mono] text-[10px] text-[#9d8f79] flex items-center gap-1.5 flex-wrap">
+                    <span>{myTeam.paddle}</span>
+                    <span>·</span>
+                    <span className={myTeam.titleId ? 'text-[#fdb813] font-bold' : ''}>
+                      {myTeam.titleId
+                        ? myTeam.titleSubFranchise
+                          ? `${myTeam.short} · Sub: ${myTeam.titleSubFranchise}`
+                          : `${myTeam.short} LOCKED`
+                        : 'NO TITLE YET'}
                     </span>
                   </div>
-                ))
-              )}
+                </div>
+              </div>
+              <Shield className="w-4 h-4 text-[#fdb813] shrink-0" />
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 mt-2.5 font-[JetBrains_Mono]">
+              <div className="bg-[#141026] border border-[#504533] rounded p-1.5">
+                <span className="text-[9px] text-[#9d8f79] block">FRANCHISE</span>
+                <span className="text-[11px] font-bold text-[#fdb813] truncate block">
+                  {myTeam.titleId ? myTeam.short : 'PENDING'}
+                </span>
+              </div>
+              <div className="bg-[#141026] border border-[#504533] rounded p-1.5">
+                <span className="text-[9px] text-[#9d8f79] block">SQUAD SLOTS</span>
+                <span className="text-[11px] font-bold text-[#e6defe]">
+                  {myTeam.n}/{vm.cfg.max}
+                </span>
+              </div>
+              <div className="bg-[#141026] border border-[#504533] rounded p-1.5">
+                <span className="text-[9px] text-[#9d8f79] block">OVERSEAS</span>
+                <span className="text-[11px] font-bold text-[#4edea3]">
+                  {myTeam.os}/{vm.cfg.os}
+                </span>
+              </div>
+              <div className="bg-[#141026] border border-[#504533] rounded p-1.5">
+                <span className="text-[9px] text-[#9d8f79] block">MIN QUOTA</span>
+                <span className={`text-[11px] font-bold ${myTeam.compositionOk ? 'text-[#4edea3]' : 'text-[#ffdb9f]'}`}>
+                  {myTeam.bowlers}/{vm.cfg.minBowlers}B · {myTeam.wicketkeepers}/{vm.cfg.minWicketkeepers}W
+                </span>
+              </div>
             </div>
           </div>
 
-          {/* BOTTOM PANEL: ALL PLAYERS */}
-          <div
-            className="flex-1 min-h-0 bg-[#0e0b21] border border-[#504533] rounded-lg flex flex-col overflow-hidden"
-            data-testid="bidder-all-players"
-          >
-            <div className="px-3 py-2 bg-[#1c192f] border-b border-[#504533] space-y-1.5 shrink-0">
-              <div className="flex items-center justify-between gap-2 flex-wrap">
-                <span className="font-[Space_Grotesk] text-xs font-extrabold uppercase tracking-wide text-[#ffdb9f]">
-                  All Players ({filteredPlayers.length}/{players.length})
-                </span>
-                <div className="flex items-center gap-1 font-[JetBrains_Mono] text-[9px]">
-                  {(['ALL', 'PENDING', 'SOLD', 'UNSOLD'] as const).map((tab) => (
-                    <button
-                      key={tab}
-                      type="button"
-                      onClick={() => setPlayerFilter(tab)}
-                      data-testid={`bidder-players-filter-${tab.toLowerCase()}`}
-                      className={`px-2 py-0.5 rounded border font-bold transition-colors ${
-                        playerFilter === tab
-                          ? 'bg-[#fdb813]/20 border-[#fdb813] text-[#fdb813]'
-                          : 'bg-[#141026] border-[#504533] text-[#9d8f79] hover:text-[#e6defe]'
-                      }`}
-                    >
-                      {tab}
-                    </button>
-                  ))}
-                </div>
-              </div>
+          <div className="px-3 py-1.5 bg-[#201d33] border-b border-[#504533] flex items-center justify-between shrink-0">
+            <span className="font-[JetBrains_Mono] text-[10px] font-bold text-[#ffdb9f] flex items-center gap-1.5">
+              <Crown className="w-3.5 h-3.5 text-[#fdb813]" />
+              <span>SIGNED PLAYERS ({myTeam.squad.length})</span>
+            </span>
+            <span className="font-[JetBrains_Mono] text-[9px] text-[#9d8f79]">
+              Min 4 Bowlers · 1 WK
+            </span>
+          </div>
 
-              <div className="relative">
-                <Search className="w-3.5 h-3.5 text-[#9d8f79] absolute left-2.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  value={playerQuery}
-                  onChange={(e) => setPlayerQuery(e.target.value)}
-                  placeholder="Search player, role, or country..."
-                  aria-label="Search all players"
-                  data-testid="bidder-players-search"
-                  className="w-full bg-[#141026] border border-[#504533] rounded pl-8 pr-2.5 py-1 text-[11px] font-[JetBrains_Mono] text-[#e6defe] placeholder:text-[#9d8f79] focus:outline-none focus:border-[#fdb813]"
-                />
+          <div className="flex-1 overflow-y-auto custom-scroll p-2 space-y-1.5">
+            {myTeam.squad.length === 0 ? (
+              <div className="p-6 text-center font-[JetBrains_Mono] text-xs text-[#9d8f79]">
+                No players signed by {myTeam.short} yet.
               </div>
-            </div>
-
-            <div className="flex-1 min-h-0 overflow-y-auto custom-scroll p-2 space-y-1">
-              {filteredPlayers.length === 0 ? (
-                <div className="p-6 text-center font-[JetBrains_Mono] text-xs text-[#9d8f79]">
-                  No players match your filter.
-                </div>
-              ) : (
-                filteredPlayers.map((p) => {
-                  const isLive = lot?.p.id === p.id;
-                  const status = vm.status[p.id];
-                  const soldInfo = soldByPid.get(p.id);
-                  return (
-                    <div
-                      key={p.id}
-                      className={`rounded px-2.5 py-1.5 border flex items-center justify-between gap-2 ${
-                        isLive
-                          ? 'bg-[#fdb813]/15 border-[#fdb813]'
-                          : 'bg-[#141026] border-[#2b273e]'
-                      }`}
-                    >
-                      <div className="min-w-0">
-                        <div className="font-[Space_Grotesk] text-xs font-bold text-[#e6defe] truncate">
-                          {p.name}
-                        </div>
-                        <div className="font-[JetBrains_Mono] text-[10px] text-[#9d8f79] truncate">
-                          {p.id} · {formatPlayerCardMeta(p)} · Base {formatCurrency(p.base)}
-                        </div>
+            ) : (
+              myTeam.squad.map((p) => (
+                <div
+                  key={p.id}
+                  className="bg-[#141026] border border-[#504533] rounded px-2.5 py-1.5 flex items-center justify-between gap-2"
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <PlayerTeamLogoPill teamShort={myTeam.short} teamName={myTeam.name} size="sm" />
+                    <div className="min-w-0">
+                      <div className="font-[Space_Grotesk] text-xs font-bold text-[#e6defe] truncate">
+                        {p.name}
                       </div>
-
-                      <div className="shrink-0 font-[JetBrains_Mono] text-[10px] font-bold">
-                        {isLive ? (
-                          <span className="px-2 py-0.5 rounded bg-[#fdb813] text-[#271900] font-extrabold">
-                            LIVE
-                          </span>
-                        ) : status === 'sold' && soldInfo ? (
-                          <span className="px-2 py-0.5 rounded bg-[#00a572]/20 border border-[#4edea3]/50 text-[#4edea3]">
-                            {soldInfo.short} · {formatCurrency(soldInfo.price)}
-                          </span>
-                        ) : status === 'unsold' ? (
-                          <span className="px-2 py-0.5 rounded bg-[#93000a]/30 border border-[#ffb4ab]/40 text-[#ffb4ab]">
-                            UNSOLD
-                          </span>
-                        ) : (
-                          <span className="px-2 py-0.5 rounded bg-[#201d33] border border-[#504533] text-[#d5c4ac]">
-                            PENDING
-                          </span>
-                        )}
+                      <div className="font-[JetBrains_Mono] text-[10px] text-[#4edea3]">
+                        {formatPlayerCardMeta(p)}
                       </div>
                     </div>
-                  );
-                })
-              )}
-            </div>
+                  </div>
+                  <span className="font-[JetBrains_Mono] text-[11px] font-bold text-[#fdb813] shrink-0">
+                    {formatCurrency(p.price)}
+                  </span>
+                </div>
+              ))
+            )}
           </div>
         </aside>
       </main>
