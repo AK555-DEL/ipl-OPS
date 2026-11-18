@@ -28,7 +28,47 @@ test('all 11 franchise titles map to existing banner assets in public/assets/ais
 
 test('all uploaded player photo mappings reference valid CSV IDs and existing files on disk', () => {
   const mappedIds = Object.keys(UPLOADED_PLAYER_PHOTOS);
-  assert.ok(mappedIds.length >= 97);
+  assert.ok(mappedIds.length >= 107);
+  assert.equal(
+    UPLOADED_PLAYER_PHOTOS['IPL-033'],
+    '/assets/aistudio/yashasvi_jaiswal_31a5fc32.png'
+  );
+  assert.equal(
+    UPLOADED_PLAYER_PHOTOS['IPL-042'],
+    '/assets/aistudio/mayank_agarwal_8a529290.png'
+  );
+  assert.equal(
+    UPLOADED_PLAYER_PHOTOS['IPL-057'],
+    '/assets/aistudio/mohammed_shami_8469d39d.jpg'
+  );
+  assert.equal(
+    UPLOADED_PLAYER_PHOTOS['IPL-060'],
+    '/assets/aistudio/yuzvendra_chahal_149d1007.png'
+  );
+  assert.equal(
+    UPLOADED_PLAYER_PHOTOS['IPL-061'],
+    '/assets/aistudio/mohammed_siraj_511e45c4.png'
+  );
+  assert.equal(
+    UPLOADED_PLAYER_PHOTOS['IPL-073'],
+    '/assets/aistudio/mitchell_starc_92608f83.png'
+  );
+  assert.equal(
+    UPLOADED_PLAYER_PHOTOS['IPL-081'],
+    '/assets/aistudio/hardik_pandya_9836a8ce.png'
+  );
+  assert.equal(
+    UPLOADED_PLAYER_PHOTOS['IPL-101'],
+    '/assets/aistudio/glenn_maxwell_640eef1a.png'
+  );
+  assert.equal(
+    UPLOADED_PLAYER_PHOTOS['IPL-123'],
+    '/assets/aistudio/heinrich_kalssen_bf8e32f1.png'
+  );
+  assert.equal(
+    UPLOADED_PLAYER_PHOTOS['IPL-158'],
+    '/assets/aistudio/yash_dayal_af92f651.png'
+  );
   assert.equal(
     UPLOADED_PLAYER_PHOTOS['IPL-003'],
     '/assets/aistudio/virat_kohli_4625a09f.png'
