@@ -33,7 +33,8 @@ import { GlobalSoundControl } from './GlobalSoundControl.tsx';
 import { PlayerPortrait } from './PlayerPortrait.tsx';
 import { StagePlayerCard } from './StagePlayerCard.tsx';
 import { ArenaLivePrice } from './ArenaLivePrice.tsx';
-import { PlayerTeamLogoPill, TeamLogoBadge } from './TeamLogoBadge.tsx';
+import { ArenaLeaderboardView } from './ArenaLeaderboardView.tsx';
+import { TeamLogoBadge } from './TeamLogoBadge.tsx';
 import { useAuctionAudioCues } from '../hooks/useAuctionAudioCues.ts';
 import { resolveStageHoldPlayer } from '../utils/stageCard.ts';
 
@@ -921,10 +922,10 @@ export function ArenaDisplay({
   // =========================================================================
   return (
     <div
-      className="w-screen h-screen overflow-hidden flex flex-col bg-[#141026] text-[#e6defe] select-none"
+      className="w-full min-h-screen md:h-screen md:overflow-hidden overflow-x-hidden flex flex-col bg-[#141026] text-[#e6defe] select-none"
       data-testid="arena-dashboard"
     >
-      <header className="flex justify-between items-center w-full px-3.5 py-2 border-b border-[#504533] bg-[#0e0b21] shrink-0 gap-2">
+      <header className="flex flex-wrap justify-between items-center w-full px-3.5 py-2 border-b border-[#504533] bg-[#0e0b21] shrink-0 gap-2">
         <div className="flex items-center gap-2 min-w-0 shrink-0">
           <div className="flex items-center gap-1.5 bg-[#201d33] px-2 py-1 rounded border border-[#504533] whitespace-nowrap shrink-0">
             <span
@@ -935,7 +936,7 @@ export function ArenaDisplay({
               {lot ? 'LOT LIVE' : connected ? 'ARENA' : 'SYNC'}
             </span>
           </div>
-          <h1 className="font-[Space_Grotesk] text-sm uppercase tracking-wider text-[#ffdb9f] font-bold whitespace-nowrap">
+          <h1 className="font-[Space_Grotesk] text-xs sm:text-sm uppercase tracking-wider text-[#ffdb9f] font-bold whitespace-nowrap truncate">
             IPL AUCTION // ARENA DASHBOARD
           </h1>
         </div>
@@ -964,7 +965,7 @@ export function ArenaDisplay({
           </button>
         ) : null}
 
-        <div className="flex items-center gap-2 shrink-0">{headerControls}</div>
+        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap max-w-full">{headerControls}</div>
       </header>
 
       {/* Most Recent Player Sold Spotlight + Stage & OS Summary */}
@@ -1114,109 +1115,7 @@ export function ArenaDisplay({
       </div>
 
       {dashTab === 'teams' ? (
-        /* 11-TEAM ROSTERS GRID (NO PURSE / NO BUDGET DISPLAY) */
-        <main className="flex-1 overflow-y-auto custom-scroll p-2.5 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-6 gap-2.5 content-start">
-          {vm.teams.map((t) => (
-            <section
-              key={t.id}
-              data-testid={`dashboard-team-${t.id}`}
-              className="bg-[#0e0b21] border border-[#504533] rounded-lg flex flex-col overflow-hidden h-[234px]"
-            >
-              <div className="p-2 bg-[#1c192f] border-b border-[#504533] relative shrink-0">
-                <div
-                  className="absolute left-0 top-0 bottom-0 w-1"
-                  style={{ backgroundColor: t.c }}
-                />
-                <div className="flex items-center justify-between gap-1.5 pl-1">
-                  <div className="flex items-center gap-1.5 min-w-0">
-                    <TeamLogoBadge team={t} size="xs" />
-                    <div className="min-w-0">
-                      <h2 className="font-[Space_Grotesk] text-xs font-bold text-[#e6defe] truncate leading-tight">
-                        {t.name}
-                      </h2>
-                      <div className="font-[JetBrains_Mono] text-[9px] text-[#9d8f79] flex items-center gap-1 truncate">
-                        <span>{t.paddle}</span>
-                        {t.titleSubFranchise ? (
-                          <span className="text-[#4edea3] font-bold truncate">
-                            · Sub: {t.titleSubFranchise.split(' · ')[0]}
-                          </span>
-                        ) : t.titleId ? (
-                          <span className="text-[#fdb813] font-bold flex items-center gap-0.5">
-                            · <Crown className="w-2.5 h-2.5" /> {t.short}
-                          </span>
-                        ) : null}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <div className="font-[JetBrains_Mono] text-[11px] font-bold text-[#4edea3]">
-                      {t.n}/{vm.cfg.max}
-                    </div>
-                    <div className="font-[JetBrains_Mono] text-[9px] text-[#ffdb9f]">
-                      OS {t.os}/{vm.cfg.os}
-                    </div>
-                  </div>
-                </div>
-                <div className="mt-1 pl-1 flex items-center gap-1 font-[JetBrains_Mono] text-[9px]">
-                  <span
-                    className={`px-1.5 py-0.2 rounded border ${
-                      t.bowlersNeeded === 0
-                        ? 'bg-[#00a572]/20 border-[#4edea3]/50 text-[#4edea3]'
-                        : 'bg-[#141026] border-[#504533] text-[#ffdb9f]'
-                    }`}
-                  >
-                    BOWL {t.bowlers}/{vm.cfg.minBowlers}
-                  </span>
-                  <span
-                    className={`px-1.5 py-0.2 rounded border ${
-                      t.wicketkeepersNeeded === 0
-                        ? 'bg-[#00a572]/20 border-[#4edea3]/50 text-[#4edea3]'
-                        : 'bg-[#141026] border-[#504533] text-[#ffdb9f]'
-                    }`}
-                  >
-                    WK {t.wicketkeepers}/{vm.cfg.minWicketkeepers}
-                  </span>
-                  {t.compositionOk && <CheckCircle2 className="w-3 h-3 text-[#4edea3] ml-auto" />}
-                </div>
-              </div>
-
-              <div className="flex-1 overflow-y-auto custom-scroll p-2 space-y-1.5">
-                {t.squad.length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center text-center p-3 font-[JetBrains_Mono] text-[11px] text-[#9d8f79]">
-                    <span>No players acquired yet</span>
-                    <span className="text-[10px] opacity-75 mt-0.5">
-                      {t.titleId
-                        ? `Franchise: ${t.name}${t.titleSubFranchise ? ` (${t.titleSubFranchise.split(' · ')[0]})` : ''}`
-                        : 'Awaiting Franchise & Player signings'}
-                    </span>
-                  </div>
-                ) : (
-                  t.squad.map((p) => (
-                    <div
-                      key={p.id}
-                      className="bg-[#1c192f]/80 border border-[#36324a] rounded px-2.5 py-1.5 flex items-center justify-between gap-2"
-                    >
-                      <div className="flex items-center gap-2 min-w-0">
-                        <PlayerTeamLogoPill teamShort={t.short} teamName={t.name} size="sm" />
-                        <div className="min-w-0">
-                          <div className="font-[Space_Grotesk] text-xs font-bold text-[#e6defe] truncate">
-                            {p.name}
-                          </div>
-                          <div className="font-[JetBrains_Mono] text-[10px] text-[#4edea3] truncate">
-                            {formatPlayerCardMeta(p)}
-                          </div>
-                        </div>
-                      </div>
-                      <span className="font-[JetBrains_Mono] text-[11px] font-bold text-[#fdb813] shrink-0">
-                        {formatCurrency(p.price)}
-                      </span>
-                    </div>
-                  ))
-                )}
-              </div>
-            </section>
-          ))}
-        </main>
+        <ArenaLeaderboardView teams={vm.teams} players={players} cfg={vm.cfg} />
       ) : (
         /* ALL PLAYERS & DECKS DATA TABLE */
         <main
@@ -1354,18 +1253,18 @@ export function ArenaDisplay({
         </main>
       )}
 
-      <footer className="h-9 bg-[#0e0b21] border-t border-[#504533] px-5 flex items-center justify-between shrink-0 font-[JetBrains_Mono] text-[11px] text-[#d5c4ac]">
-        <div className="flex items-center gap-2">
-          <Verified className="w-3.5 h-3.5 text-[#4edea3]" />
+      <footer className="min-h-9 py-1.5 bg-[#0e0b21] border-t border-[#504533] px-4 sm:px-5 flex items-center justify-between gap-2 shrink-0 font-[JetBrains_Mono] text-[10px] sm:text-[11px] text-[#d5c4ac]">
+        <div className="flex items-center gap-2 whitespace-nowrap">
+          <Verified className="w-3.5 h-3.5 text-[#4edea3] shrink-0" />
           <span className="text-[#e6defe] font-semibold">
             {connected ? 'ARENA DASHBOARD LIVE' : 'RECONNECTING'}
           </span>
         </div>
-        <div className="flex items-center gap-3">
-          <span className="text-[#9d8f79] font-bold">
+        <div className="flex items-center gap-3 shrink-0">
+          <span className="hidden md:inline text-[#9d8f79] font-bold">
             MANUAL FUNDS MODE · DASHBOARD &amp; STAGE SEPARATED
           </span>
-          <span className="bg-[#201d33] px-2 py-0.5 rounded border border-[#504533] text-[#ffdb9f] font-bold">
+          <span className="bg-[#201d33] px-2 py-0.5 rounded border border-[#504533] text-[#ffdb9f] font-bold whitespace-nowrap">
             CLUB EVENT EDITION
           </span>
         </div>
