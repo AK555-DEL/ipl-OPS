@@ -7,6 +7,7 @@ import {
   buildAllLots,
   buildViewModel,
   executeCommand,
+  getIplBidIncrement,
   parsePlayersCsv,
 } from '../auction/engine.ts';
 import {
@@ -111,7 +112,7 @@ test('computeBiddingRateInfo tracks highest bidder, multiplier, and bid rate, an
   assert.equal(rate.leaderTeam?.id, 't2');
   assert.equal(rate.currentPriceLakhs, vm.lot.price);
   assert.equal(rate.bidCount, 2);
-  assert.equal(rate.incrementLakhs, vm.lot.p.inc);
+  assert.equal(rate.incrementLakhs, getIplBidIncrement(vm.lot.price));
   assert.equal(rate.bidsPerMinute, '4.0');
 
   events = executeCommand(events, allLots, pidMap, 'MEGA', { type: 'hammer' }, 50_000);
@@ -122,4 +123,17 @@ test('computeBiddingRateInfo tracks highest bidder, multiplier, and bid rate, an
   assert.equal(hold.holdMode, 'sold');
   assert.equal(hold.player.id, 'IPL-001');
   assert.equal(hold.outcomeTeamShort, 'T02');
+
+  events = executeCommand(events, allLots, pidMap, 'MEGA', { type: 'next', pid: 'IPL-002' }, 60_000);
+  events = executeCommand(events, allLots, pidMap, 'MEGA', { type: 'custom', team: 't1', price: 400 }, 62_000);
+  vm = buildViewModel(events, allLots, pidMap, 'MEGA', 62_000);
+  assert.equal(computeBiddingRateInfo(vm.lot!, vm.teams, 62_000).incrementLakhs, 50);
+
+  events = executeCommand(events, allLots, pidMap, 'MEGA', { type: 'custom', team: 't2', price: 1000 }, 64_000);
+  vm = buildViewModel(events, allLots, pidMap, 'MEGA', 64_000);
+  assert.equal(computeBiddingRateInfo(vm.lot!, vm.teams, 64_000).incrementLakhs, 100);
+
+  events = executeCommand(events, allLots, pidMap, 'MEGA', { type: 'custom', team: 't1', price: 2000 }, 66_000);
+  vm = buildViewModel(events, allLots, pidMap, 'MEGA', 66_000);
+  assert.equal(computeBiddingRateInfo(vm.lot!, vm.teams, 66_000).incrementLakhs, 200);
 });

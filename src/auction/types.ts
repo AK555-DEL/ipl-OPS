@@ -167,6 +167,7 @@ export interface LotView {
   team: string | null;
   trail: BidTrailEntry[];
   next: number;
+  inc: number;
   bidCount: number;
   lastTimestamp: number | null;
   startedAt: number;

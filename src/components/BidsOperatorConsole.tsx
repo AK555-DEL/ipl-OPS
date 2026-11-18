@@ -16,7 +16,12 @@ import {
   Zap,
 } from 'lucide-react';
 import type { AuctionViewModel, CommandBody, LotCategory, Player } from '../auction/types.ts';
-import { formatCurrency, formatLakhs, formatPlayerCardMeta } from '../auction/engine.ts';
+import {
+  formatCurrency,
+  formatLakhs,
+  formatPlayerCardMeta,
+  getIplBidIncrement,
+} from '../auction/engine.ts';
 import { useAuth } from '../contexts/AuthContext.tsx';
 import { useAudioSettings } from '../contexts/AudioSettingsContext.tsx';
 import { GlobalSoundControl } from './GlobalSoundControl.tsx';
@@ -45,6 +50,13 @@ const CATEGORY_LABEL: Record<LotCategory, string> = {
   CAPPED: 'CAPPED · 3:00',
   UNCAPPED: 'UNCAPPED · 2:00',
 };
+
+const IPL_INCREMENT_SLABS = [
+  { id: 'slab-25', range: 'Below ₹4 Cr', step: '+₹25 L', inc: 25 },
+  { id: 'slab-50', range: '₹4 Cr – ₹10 Cr', step: '+₹50 L', inc: 50 },
+  { id: 'slab-100', range: '₹10 Cr – ₹20 Cr', step: '+₹1.00 Cr', inc: 100 },
+  { id: 'slab-200', range: 'Above ₹20 Cr', step: '+₹2.00 Cr', inc: 200 },
+] as const;
 
 function formatClock(sec: number): string {
   const clamped = Math.max(0, Math.floor(sec));
@@ -83,6 +95,7 @@ export function BidsOperatorConsole({
   const [pinError, setPinError] = useState<string | null>(null);
   const [unlocking, setUnlocking] = useState(false);
   const [customCr, setCustomCr] = useState('');
+  const [showCustomOverride, setShowCustomOverride] = useState(false);
   const [nowMs, setNowMs] = useState(() => Date.now());
 
   useEffect(() => {
@@ -97,6 +110,7 @@ export function BidsOperatorConsole({
   const lot = vm.lot;
   const remainingSec = lot ? Math.max(0, Math.ceil((lot.expiresAt - nowMs) / 1000)) : 0;
   const leader = lot?.team ? vm.teams.find((t) => t.id === lot.team) ?? null : null;
+  const activeIncrement = lot ? getIplBidIncrement(lot.price) : 25;
 
   useAuctionAudioCues(vm, remainingSec, !muted);
 
@@ -145,17 +159,20 @@ export function BidsOperatorConsole({
     onToast('Bids Operator Console + Arena 1 unlocked!');
   };
 
-  const handleJumpBid = async (deltaLakhs: number) => {
-    if (!lot || busy || !activeTeam || !canPlaceBids) return;
-    if (activeTeam.lead) {
-      onToast(`${activeTeam.short} already holds the highest bid`);
+  const handleTeamAutoBid = async (teamId: string) => {
+    onSelectTeamId(teamId);
+    if (!lot || busy || !canPlaceBids) return;
+    const team = vm.teams.find((t) => t.id === teamId);
+    if (!team) return;
+    if (team.lead) {
+      onToast(`${team.short} already holds the highest bid`);
       return;
     }
-    if (activeTeam.block) {
-      onToast(`${activeTeam.short}: ${activeTeam.block}`);
+    if (team.block) {
+      onToast(`${team.short}: ${team.block}`);
       return;
     }
-    await onSend({ type: 'jump', team: activeTeam.id, delta: deltaLakhs });
+    await onSend({ type: 'bid', team: team.id });
   };
 
   const handleCustomBid = async (e: React.FormEvent) => {
@@ -178,34 +195,6 @@ export function BidsOperatorConsole({
     const ok = await onSend({ type: 'custom', team: activeTeam.id, price: lakhs });
     if (ok) setCustomCr('');
   };
-
-  const jumpOptions: Array<{ delta: number; label: string; sub: string; accent?: boolean }> = lot
-    ? lot.team === null
-      ? [
-          { delta: 0, label: 'OPEN AT BASE', sub: formatCurrency(lot.price), accent: true },
-          { delta: 25, label: '+₹25 L', sub: `→ ${formatCurrency(lot.price + 25)}` },
-          { delta: 50, label: '+₹50 L', sub: `→ ${formatCurrency(lot.price + 50)}` },
-          { delta: 100, label: '+₹1.00 Cr', sub: `→ ${formatCurrency(lot.price + 100)}` },
-          { delta: 200, label: '+₹2.00 Cr', sub: `→ ${formatCurrency(lot.price + 200)}` },
-          { delta: 500, label: '+₹5.00 Cr', sub: `→ ${formatCurrency(lot.price + 500)}` },
-        ]
-      : [
-          {
-            delta: lot.p.inc,
-            label: `+${formatCurrency(lot.p.inc)}`,
-            sub: `→ ${formatCurrency(lot.price + lot.p.inc)}`,
-            accent: true,
-          },
-          ...[25, 50, 100, 200, 500, 1000]
-            .filter((d) => d > lot.p.inc)
-            .slice(0, 5)
-            .map((d) => ({
-              delta: d,
-              label: `+${formatCurrency(d)}`,
-              sub: `→ ${formatCurrency(lot.price + d)}`,
-            })),
-        ]
-    : [];
 
   const headerBar = (
     <header className="h-12 bg-[#0e0b21] border-b border-[#504533] px-3.5 flex items-center justify-between gap-2 shrink-0">
@@ -399,7 +388,7 @@ export function BidsOperatorConsole({
       {headerBar}
 
       <main className="flex-1 min-h-0 grid grid-cols-12 gap-2.5 p-2.5 overflow-hidden">
-        {/* LEFT COLUMN (3 cols): Up Next (Main Op Staged) + Overseas 80x80 Spotlight */}
+        {/* LEFT COLUMN (3 cols): Up Next (Main Op Staged) + Overseas 80x80 + IPL Slab Rules */}
         <section className="col-span-12 lg:col-span-3 flex flex-col gap-2.5 min-h-0 overflow-hidden">
           {/* Read-only Up Next Queue */}
           <div className="bg-[#0e0b21] border border-[#504533] rounded-lg p-2.5 flex flex-col gap-2 shrink-0">
@@ -412,7 +401,7 @@ export function BidsOperatorConsole({
               </span>
             </div>
             {upcomingStrip.length === 0 ? (
-              <div className="py-3 text-center font-[JetBrains_Mono] text-[10px] text-[#9d8f79]">
+              <div className="py-2.5 text-center font-[JetBrains_Mono] text-[10px] text-[#9d8f79]">
                 Waiting for Main Operator to queue next lots...
               </div>
             ) : (
@@ -492,69 +481,134 @@ export function BidsOperatorConsole({
             )}
           </div>
 
+          {/* IPL Automatic Increment Slabs */}
+          <div
+            className="bg-[#0e0b21] border border-[#fdb813]/45 rounded-lg p-2.5 flex flex-col gap-1.5 shrink-0"
+            data-testid="bids-op-slab-rules"
+          >
+            <div className="flex items-center justify-between border-b border-[#2b273e] pb-1">
+              <span className="font-[Space_Grotesk] text-xs font-bold text-[#fdb813] uppercase flex items-center gap-1.5">
+                <Zap className="w-3.5 h-3.5" />
+                <span>IPL Auto-Increment Slabs</span>
+              </span>
+              <span className="font-[JetBrains_Mono] text-[9px] text-[#4edea3] font-bold">
+                1-CLICK BID
+              </span>
+            </div>
+            <div className="space-y-1 font-[JetBrains_Mono] text-[10px]">
+              {IPL_INCREMENT_SLABS.map((slab) => {
+                const isActive = Boolean(lot && lot.team !== null && activeIncrement === slab.inc);
+                return (
+                  <div
+                    key={slab.id}
+                    data-testid={slab.id}
+                    data-active={isActive ? 'true' : 'false'}
+                    className={`px-2 py-1 rounded border flex items-center justify-between transition-colors ${
+                      isActive
+                        ? 'bg-[#fdb813]/20 border-[#fdb813] text-[#ffdb9f] font-extrabold'
+                        : 'bg-[#1c192f] border-[#504533]/60 text-[#d5c4ac]'
+                    }`}
+                  >
+                    <span>{slab.range}</span>
+                    <span className={isActive ? 'text-[#fdb813]' : 'text-[#4edea3] font-bold'}>
+                      {slab.step}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
           {/* Role Lock Notice */}
           <div className="mt-auto bg-[#1c192f] border border-[#504533] rounded-lg p-2.5 flex items-start gap-2 font-[JetBrains_Mono] text-[10px] text-[#d5c4ac]">
             <ShieldAlert className="w-3.5 h-3.5 text-[#fdb813] shrink-0 mt-0.5" />
             <span>
-              Main Operator releases lots &amp; manages queues. Use keys <strong className="text-[#fdb813]">1–9, 0, -</strong> or
-              click a team card to place bids on their behalf.
+              Click any team or press <strong className="text-[#fdb813]">1–9, 0, -</strong> to place an
+              instant automatic bid.
             </span>
           </div>
         </section>
 
-        {/* CENTER COLUMN (6 cols): Active Team Selector + Live Bid Controls */}
+        {/* CENTER COLUMN (6 cols): Live Lot Banner + One-Click 11-Team Bidding Pad */}
         <section className="col-span-12 lg:col-span-6 flex flex-col gap-2.5 min-h-0 overflow-hidden">
           {/* Live Lot Banner */}
           <div className="bg-[#0e0b21] border-2 border-[#fdb813]/50 rounded-lg p-3 shrink-0">
             {lot ? (
-              <div className="flex items-center justify-between gap-3 flex-wrap">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-20 h-20 rounded border border-[#fdb813]/60 overflow-hidden shrink-0 bg-[#1c192f]">
-                    <PlayerPortrait player={lot.p} size="md" className="w-20 h-20" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="px-1.5 py-0.5 rounded bg-[#201d33] border border-[#504533] font-[JetBrains_Mono] text-[9px] text-[#ffdb9f] font-bold">
-                        {CATEGORY_LABEL[lot.category]}
-                      </span>
-                      <span className="px-1.5 py-0.5 rounded bg-[#2b273e] border border-[#504533] font-[JetBrains_Mono] text-[9px] text-[#4edea3] font-bold">
-                        {lot.p.isTitle ? 'FRANCHISE' : lot.p.os ? `OVERSEAS (${lot.p.cc})` : `INDIAN (${lot.p.cc})`}
-                      </span>
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-20 h-20 rounded border border-[#fdb813]/60 overflow-hidden shrink-0 bg-[#1c192f]">
+                      <PlayerPortrait player={lot.p} size="md" className="w-20 h-20" />
                     </div>
-                    <h1 className="font-[Space_Grotesk] text-xl font-extrabold text-[#e6defe] truncate mt-1">
-                      {lot.p.name}
-                    </h1>
-                    <div className="font-[JetBrains_Mono] text-[11px] text-[#4edea3] font-bold">
-                      {formatPlayerCardMeta(lot.p)} · Base {formatCurrency(lot.p.base)}
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="px-1.5 py-0.5 rounded bg-[#201d33] border border-[#504533] font-[JetBrains_Mono] text-[9px] text-[#ffdb9f] font-bold">
+                          {CATEGORY_LABEL[lot.category]}
+                        </span>
+                        <span className="px-1.5 py-0.5 rounded bg-[#2b273e] border border-[#504533] font-[JetBrains_Mono] text-[9px] text-[#4edea3] font-bold">
+                          {lot.p.isTitle ? 'FRANCHISE' : lot.p.os ? `OVERSEAS (${lot.p.cc})` : `INDIAN (${lot.p.cc})`}
+                        </span>
+                      </div>
+                      <h1 className="font-[Space_Grotesk] text-xl font-extrabold text-[#e6defe] truncate mt-1">
+                        {lot.p.name}
+                      </h1>
+                      <div className="font-[JetBrains_Mono] text-[11px] text-[#4edea3] font-bold">
+                        {formatPlayerCardMeta(lot.p)} · Base {formatCurrency(lot.p.base)}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 shrink-0">
+                    <div className="text-right">
+                      <div className="font-[JetBrains_Mono] text-[9px] text-[#9d8f79] uppercase">
+                        {leader ? `HELD BY ${leader.short}` : 'OPENING BASE'}
+                      </div>
+                      <div
+                        className="font-[JetBrains_Mono] text-3xl font-black text-[#fdb813] leading-none"
+                        data-testid="bids-op-price"
+                      >
+                        ₹ {formatLakhs(lot.price)}
+                      </div>
+                      <div className="font-[JetBrains_Mono] text-[10px] text-[#4edea3] mt-0.5">
+                        {lot.bidCount} bids
+                      </div>
+                    </div>
+                    <div
+                      className={`px-2.5 py-1.5 rounded border font-[JetBrains_Mono] text-sm font-black flex items-center gap-1.5 ${
+                        remainingSec <= 15
+                          ? 'bg-[#93000a]/60 border-[#ffb4ab] text-[#ffb4ab] animate-pulse'
+                          : 'bg-[#201d33] border-[#4edea3]/50 text-[#4edea3]'
+                      }`}
+                    >
+                      <Clock className="w-4 h-4" />
+                      <span>{formatClock(remainingSec)}</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 shrink-0">
-                  <div className="text-right">
-                    <div className="font-[JetBrains_Mono] text-[9px] text-[#9d8f79] uppercase">
-                      {leader ? `HELD BY ${leader.short}` : 'OPENING BASE'}
-                    </div>
-                    <div
-                      className="font-[JetBrains_Mono] text-3xl font-black text-[#fdb813] leading-none"
-                      data-testid="bids-op-price"
-                    >
-                      ₹ {formatLakhs(lot.price)}
-                    </div>
-                    <div className="font-[JetBrains_Mono] text-[10px] text-[#4edea3] mt-0.5">
-                      {lot.bidCount} bids
-                    </div>
+                {/* Next Auto-Bid Callout */}
+                <div
+                  className="bg-[#1c192f] border border-[#fdb813]/40 rounded-md px-3 py-1.5 flex items-center justify-between gap-2 flex-wrap font-[JetBrains_Mono] text-[11px]"
+                  data-testid="bids-op-next-banner"
+                >
+                  <div className="flex items-center gap-2 text-[#ffdb9f]">
+                    <Gavel className="w-3.5 h-3.5 text-[#fdb813] shrink-0" />
+                    {lot.team === null ? (
+                      <span>
+                        Click any team to <strong className="text-[#fdb813]">OPEN AT BASE</strong> (₹{' '}
+                        {formatLakhs(lot.price)})
+                      </span>
+                    ) : (
+                      <span>
+                        Click any team to add{' '}
+                        <strong className="text-[#4edea3]">+₹{formatLakhs(activeIncrement)}</strong>{' '}
+                        → <strong className="text-[#fdb813]">₹ {formatLakhs(lot.next)}</strong>
+                      </span>
+                    )}
                   </div>
-                  <div
-                    className={`px-2.5 py-1.5 rounded border font-[JetBrains_Mono] text-sm font-black flex items-center gap-1.5 ${
-                      remainingSec <= 15
-                        ? 'bg-[#93000a]/60 border-[#ffb4ab] text-[#ffb4ab] animate-pulse'
-                        : 'bg-[#201d33] border-[#4edea3]/50 text-[#4edea3]'
-                    }`}
-                  >
-                    <Clock className="w-4 h-4" />
-                    <span>{formatClock(remainingSec)}</span>
-                  </div>
+                  <span className="px-2 py-0.5 rounded bg-[#00a572]/20 border border-[#4edea3]/50 text-[#4edea3] text-[10px] font-bold">
+                    {lot.team === null ? 'FIRST BID: BASE' : `AUTO STEP +₹${formatLakhs(activeIncrement)}`}
+                  </span>
                 </div>
               </div>
             ) : (
@@ -569,136 +623,182 @@ export function BidsOperatorConsole({
             )}
           </div>
 
-          {/* 11-Team Selector Grid */}
-          <div className="bg-[#0e0b21] border border-[#504533] rounded-lg p-2.5 shrink-0">
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="font-[Space_Grotesk] text-xs font-bold text-[#e6defe]">
-                Select Bidding Team (1–9, 0, -)
+          {/* ONE-CLICK 11-TEAM BIDDING PAD */}
+          <div className="flex-1 min-h-0 bg-[#0e0b21] border border-[#504533] rounded-lg p-3 flex flex-col gap-2.5 overflow-hidden">
+            <div className="flex items-center justify-between gap-2 shrink-0 flex-wrap">
+              <div className="flex items-center gap-2">
+                <Gavel className="w-4 h-4 text-[#fdb813]" />
+                <h2 className="font-[Space_Grotesk] text-sm font-extrabold text-[#e6defe] uppercase tracking-wide">
+                  Click Team That Bid (Auto-Increment)
+                </h2>
+              </div>
+              <span className="font-[JetBrains_Mono] text-[10px] text-[#4edea3] font-bold">
+                KEYS 1–9, 0, - · INSTANT BID
               </span>
-              {activeTeam && (
-                <span className="font-[JetBrains_Mono] text-[10px] text-[#fdb813] font-bold">
-                  ACTIVE: {activeTeam.name} ({activeTeam.short})
-                  {activeTeam.titleSubFranchise ? ` · Sub: ${activeTeam.titleSubFranchise}` : ''} · SLOTS{' '}
-                  {activeTeam.n}/{vm.cfg.max}
-                </span>
-              )}
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-6 gap-1.5">
+
+            <div
+              className="flex-1 min-h-0 overflow-y-auto custom-scroll grid grid-cols-2 sm:grid-cols-3 gap-2 content-start pr-0.5"
+              data-testid="bids-op-team-pad"
+            >
               {vm.teams.map((t, index) => {
-                const selected = t.id === activeTeam?.id;
                 const hotkey = index === 9 ? '0' : index === 10 ? '-' : String(index + 1);
+                const disabled = !lot || busy || t.lead || Boolean(t.block);
+
                 return (
                   <button
                     key={t.id}
                     type="button"
-                    onClick={() => onSelectTeamId(t.id)}
+                    disabled={disabled}
+                    onClick={() => void handleTeamAutoBid(t.id)}
                     data-testid={`bids-op-team-${t.id}`}
-                    className={`text-left px-2 py-1.5 rounded border transition-all flex items-center justify-between gap-1.5 ${
-                      selected
-                        ? 'bg-[#2b273e] border-2 border-[#fdb813] text-[#e6defe]'
+                    aria-label={
+                      !lot
+                        ? `${t.name} (${t.short}) floor idle`
                         : t.lead
-                          ? 'bg-[#00a572]/20 border-[#4edea3] text-[#4edea3]'
+                          ? `${t.name} (${t.short}) currently leading`
                           : t.block
-                            ? 'bg-[#1c192f]/50 border-[#504533]/50 text-[#9d8f79] opacity-70'
-                            : 'bg-[#1c192f] border-[#504533] hover:border-[#fdb813]/70 text-[#e6defe]'
+                            ? `${t.name} (${t.short}) blocked: ${t.block}`
+                            : lot.team === null
+                              ? `Open bid for ${t.name} (${t.short}) at ${formatCurrency(lot.price)}`
+                              : `Place bid for ${t.name} (${t.short}) at ${formatCurrency(lot.next)}`
+                    }
+                    className={`rounded-lg border-2 p-2.5 text-left flex flex-col justify-between gap-2 transition-all active:scale-[0.98] min-h-[96px] ${
+                      t.lead
+                        ? 'bg-[#00a572]/20 border-[#4edea3] text-[#e6defe] cursor-default'
+                        : t.block
+                          ? 'bg-[#1c192f]/40 border-[#93000a]/60 text-[#9d8f79] opacity-60 cursor-not-allowed'
+                          : !lot
+                            ? 'bg-[#1c192f]/60 border-[#504533]/60 text-[#9d8f79] opacity-65 cursor-not-allowed'
+                            : 'bg-[#1c192f] hover:bg-[#2b273e] border-[#504533] hover:border-[#fdb813] text-[#e6defe]'
                     }`}
                   >
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      <TeamLogoBadge team={t} size="xs" />
-                      <div className="min-w-0">
-                        <div className="font-[Space_Grotesk] text-[11px] font-bold truncate leading-tight">
-                          [{hotkey}] {t.short}
-                        </div>
-                        <div className="font-[JetBrains_Mono] text-[9px] text-[#d5c4ac] truncate">
-                          {t.n}/{vm.cfg.max} SLOTS · OS {t.os}/{vm.cfg.os}
+                    <div className="flex items-start justify-between gap-1.5">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <TeamLogoBadge team={t} size="sm" />
+                        <div className="min-w-0">
+                          <div className="font-[Space_Grotesk] text-sm font-extrabold leading-tight truncate flex items-center gap-1">
+                            <span className="font-[JetBrains_Mono] text-[10px] text-[#fdb813]">
+                              [{hotkey}]
+                            </span>
+                            <span className="truncate">{t.short}</span>
+                          </div>
+                          <div className="font-[Inter] text-[10px] text-[#d5c4ac] truncate">
+                            {t.name}
+                          </div>
                         </div>
                       </div>
+                      <span className="font-[JetBrains_Mono] text-[9px] text-[#9d8f79] shrink-0 text-right leading-tight">
+                        {t.n}/{vm.cfg.max}
+                        <br />
+                        OS {t.os}/{vm.cfg.os}
+                      </span>
+                    </div>
+
+                    <div
+                      className={`px-2 py-1 rounded font-[JetBrains_Mono] text-[10px] font-extrabold flex items-center justify-between gap-1 ${
+                        t.lead
+                          ? 'bg-[#00a572] text-[#002113]'
+                          : t.block
+                            ? 'bg-[#93000a]/40 text-[#ffb4ab]'
+                            : !lot
+                              ? 'bg-[#141026] text-[#9d8f79]'
+                              : lot.team === null
+                                ? 'bg-[#fdb813] text-[#271900]'
+                                : 'bg-[#141026] border border-[#fdb813]/50 text-[#fdb813]'
+                      }`}
+                    >
+                      {t.lead ? (
+                        <span className="w-full text-center">★ HIGHEST BID</span>
+                      ) : t.block ? (
+                        <span className="truncate w-full">{t.block}</span>
+                      ) : !lot ? (
+                        <span className="w-full text-center">FLOOR IDLE</span>
+                      ) : lot.team === null ? (
+                        <>
+                          <span>OPEN</span>
+                          <span>₹{formatLakhs(lot.price)}</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-[#4edea3]">+₹{formatLakhs(activeIncrement)}</span>
+                          <span>₹{formatLakhs(lot.next)}</span>
+                        </>
+                      )}
                     </div>
                   </button>
                 );
               })}
             </div>
-          </div>
 
-          {/* Large Jump Bid Controls */}
-          <div className="flex-1 min-h-0 bg-[#0e0b21] border border-[#504533] rounded-lg p-3 flex flex-col justify-between gap-2.5 overflow-y-auto custom-scroll">
-            <div className="flex items-center justify-between gap-2 flex-wrap">
-              <div className="flex items-center gap-2">
-                <Gavel className="w-4 h-4 text-[#fdb813]" />
-                <span className="font-[Space_Grotesk] text-sm font-bold text-[#e6defe]">
-                  Place Bid For: <span className="text-[#fdb813]">{activeTeam?.name}</span>
-                </span>
-              </div>
-              {activeTeam && (
-                <div className="font-[JetBrains_Mono] text-[10px] text-[#4edea3]">
-                  SLOTS {activeTeam.n}/{vm.cfg.max} · OS {activeTeam.os}/{vm.cfg.os} · B{' '}
-                  {activeTeam.bowlers}/{vm.cfg.minBowlers} · WK {activeTeam.wicketkeepers}/
-                  {vm.cfg.minWicketkeepers}
+            {/* Optional Manual Price Override Bar */}
+            <div className="pt-1.5 border-t border-[#2b273e] shrink-0">
+              {!showCustomOverride ? (
+                <div className="flex items-center justify-between gap-2 font-[JetBrains_Mono] text-[10px] text-[#9d8f79]">
+                  <span>
+                    Rule: &lt;4Cr +25L · 4–10Cr +50L · 10–20Cr +1Cr · &gt;20Cr +2Cr
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!activeTeam || activeTeam.lead || activeTeam.block) {
+                        const fallback = vm.teams.find((t) => !t.lead && !t.block);
+                        if (fallback) onSelectTeamId(fallback.id);
+                      }
+                      setShowCustomOverride(true);
+                    }}
+                    data-testid="bids-op-toggle-custom"
+                    className="text-[#ffdb9f] hover:text-[#fdb813] underline font-bold shrink-0"
+                  >
+                    Custom Amount Override
+                  </button>
                 </div>
+              ) : (
+                <form
+                  onSubmit={handleCustomBid}
+                  className="flex items-center gap-2 flex-wrap"
+                  data-testid="bids-op-custom-form"
+                >
+                  <select
+                    value={activeTeam?.id ?? 't1'}
+                    onChange={(e) => onSelectTeamId(e.target.value)}
+                    aria-label="Select team for custom bid override"
+                    className="bg-[#141026] border border-[#504533] rounded px-2 py-1 text-xs font-[JetBrains_Mono] text-[#fdb813] font-bold focus:outline-none focus:border-[#fdb813]"
+                  >
+                    {vm.teams.map((t) => (
+                      <option key={t.id} value={t.id}>
+                        {t.short} ({t.name})
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    type="text"
+                    value={customCr}
+                    onChange={(e) => setCustomCr(e.target.value)}
+                    disabled={!lot || busy}
+                    placeholder="Bid in Cr (e.g. 4.00)"
+                    aria-label="Custom bid in crores"
+                    data-testid="bids-op-custom-input"
+                    className="flex-1 min-w-[140px] bg-[#141026] border border-[#504533] rounded px-2.5 py-1 text-xs font-[JetBrains_Mono] text-[#e6defe] focus:outline-none focus:border-[#fdb813] disabled:opacity-40"
+                  />
+                  <button
+                    type="submit"
+                    disabled={!lot || busy || Boolean(activeTeam?.lead) || Boolean(activeTeam?.block)}
+                    data-testid="bids-op-custom-submit"
+                    className="px-3 py-1 rounded bg-[#00a572] hover:bg-[#00a572]/90 text-[#002113] font-[JetBrains_Mono] text-xs font-extrabold disabled:opacity-40"
+                  >
+                    Set Bid
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowCustomOverride(false)}
+                    className="px-2 py-1 rounded border border-[#504533] text-[#9d8f79] hover:text-[#e6defe] font-[JetBrains_Mono] text-[10px]"
+                  >
+                    Hide
+                  </button>
+                </form>
               )}
             </div>
-
-            {activeTeam?.block && lot && (
-              <div className="bg-[#93000a]/30 border border-[#ffb4ab]/60 rounded px-3 py-1.5 font-[JetBrains_Mono] text-[11px] text-[#ffb4ab] font-bold">
-                Blocked for {activeTeam.short}: {activeTeam.block}
-              </div>
-            )}
-
-            {activeTeam?.lead && lot && (
-              <div className="bg-[#00a572]/20 border border-[#4edea3]/60 rounded px-3 py-1.5 font-[JetBrains_Mono] text-[11px] text-[#4edea3] font-bold">
-                ★ {activeTeam.short} currently holds the highest bid — select another franchise to counter-bid!
-              </div>
-            )}
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 flex-1">
-              {jumpOptions.map((opt) => {
-                const disabled = !lot || busy || Boolean(activeTeam?.lead) || Boolean(activeTeam?.block);
-                return (
-                  <button
-                    key={`${opt.delta}-${opt.label}`}
-                    type="button"
-                    disabled={disabled}
-                    onClick={() => void handleJumpBid(opt.delta)}
-                    data-testid={`bids-op-jump-${opt.delta}`}
-                    className={`rounded-lg px-3 py-2.5 border-2 flex flex-col items-center justify-center gap-0.5 transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed ${
-                      opt.accent
-                        ? 'bg-[#fdb813] hover:bg-[#ffbb1e] border-[#ffdb9f] text-[#271900] shadow-lg'
-                        : 'bg-[#1c192f] hover:bg-[#2b273e] border-[#504533] hover:border-[#fdb813] text-[#e6defe]'
-                    }`}
-                  >
-                    <span className="font-[JetBrains_Mono] text-base font-black leading-none">
-                      {opt.label}
-                    </span>
-                    <span
-                      className={`font-[JetBrains_Mono] text-[10px] font-bold ${
-                        opt.accent ? 'text-[#271900]/80' : 'text-[#4edea3]'
-                      }`}
-                    >
-                      {opt.sub}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-
-            <form onSubmit={handleCustomBid} className="flex items-center gap-2 pt-1">
-              <input
-                type="text"
-                value={customCr}
-                onChange={(e) => setCustomCr(e.target.value)}
-                disabled={!lot || busy || Boolean(activeTeam?.lead) || Boolean(activeTeam?.block)}
-                placeholder="Custom Bid in Cr (e.g. 6.50)"
-                aria-label="Custom bid in crores"
-                className="flex-1 bg-[#141026] border border-[#504533] rounded-lg px-3 py-1.5 text-xs font-[JetBrains_Mono] text-[#e6defe] focus:outline-none focus:border-[#fdb813] disabled:opacity-40"
-              />
-              <button
-                type="submit"
-                disabled={!lot || busy || Boolean(activeTeam?.lead) || Boolean(activeTeam?.block)}
-                className="px-4 py-1.5 rounded-lg bg-[#00a572] hover:bg-[#00a572]/90 text-[#002113] font-[JetBrains_Mono] text-xs font-extrabold disabled:opacity-40"
-              >
-                Place Custom Bid
-              </button>
-            </form>
           </div>
         </section>
 

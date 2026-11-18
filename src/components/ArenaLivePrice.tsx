@@ -310,7 +310,7 @@ export function ArenaLivePrice({
                   {lot.bidCount > 0 ? 'CURRENT LIVE AUCTION PRICE' : 'OPENING BASE PRICE'}
                 </div>
                 <div className="font-[JetBrains_Mono] text-xs text-[#b4cbe9] mt-0.5 tabular-nums">
-                  Base {formatCurrency(lot.p.base)} · Step +{formatLakhs(lot.p.inc)}
+                  Base {formatCurrency(lot.p.base)} · Step +{formatLakhs(rateInfo.incrementLakhs)}
                 </div>
               </div>
 
@@ -412,7 +412,7 @@ export function ArenaLivePrice({
               <div className="flex flex-col text-right">
                 <span className="text-[11px] text-[#9ec5ff] uppercase">NEXT STEP</span>
                 <span className="text-xl sm:text-2xl font-black text-[#fdb813] tabular-nums">
-                  +₹{formatLakhs(lot.p.inc)}
+                  +₹{formatLakhs(rateInfo.incrementLakhs)}
                 </span>
               </div>
             </div>

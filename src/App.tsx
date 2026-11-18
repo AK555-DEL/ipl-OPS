@@ -365,13 +365,16 @@ function AuctionAppShell() {
         return;
       }
 
-      // Bids Operator Console shortcuts: keys 1-9, 0, and - switch the active bidding team cleanly
+      // Bids Operator Console shortcuts: keys 1-9, 0, and - place an instant IPL slab bid for Team 1-11
       if (route === 'bids-op' && (isHostAuthenticated || subOpRole === 'bids') && /^([0-9]|-)$/.test(e.key)) {
         const idx = e.key === '-' ? 10 : e.key === '0' ? 9 : Number(e.key) - 1;
         const team = vm.teams[idx];
         if (!team) return;
         e.preventDefault();
         setBidsOpTeamId(team.id);
+        if (vm.lot && !team.lead && !team.block) {
+          void sendCommand({ type: 'bid', team: team.id });
+        }
         return;
       }
 
@@ -713,9 +716,9 @@ function AuctionAppShell() {
                 ['N (Operator)', 'Send next lot from Up Next queue to Arena'],
                 ['/ (Operator)', 'Focus player/title search & queue picker'],
                 ['Ctrl/Cmd + Z', 'Undo last auction event (Operator)'],
-                ['1 – 9, 0, - (/bid)', 'Place instant bid for Club Team 1–11 on Bidder Console'],
+                ['1 – 9, 0, - (/bids-op & /bid)', 'Click/press team key for instant IPL slab auto-bid'],
                 ['/arena Screen', 'Display-only Team–Players Dashboard & Stage'],
-                ['/bid Screen', 'User-side team selector & jump bid console'],
+                ['/bids-op Screen', '1-click team pad with automatic IPL increment slabs'],
               ].map(([key, desc]) => (
                 <div
                   key={key}

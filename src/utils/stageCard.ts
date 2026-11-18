@@ -1,5 +1,5 @@
 import type { BriefPlayer, LastOutcome, LotView, Player, TeamView } from '../auction/types.ts';
-import { formatRole } from '../auction/engine.ts';
+import { formatRole, getIplBidIncrement } from '../auction/engine.ts';
 
 export interface StageCardFields {
   displayName: string;
@@ -202,7 +202,7 @@ export function computeBiddingRateInfo(
   return {
     currentPriceLakhs: lot.price,
     nextBidLakhs: lot.next,
-    incrementLakhs: lot.p.inc,
+    incrementLakhs: getIplBidIncrement(lot.price),
     multiplier,
     bidCount: lot.bidCount,
     bidsPerMinute,

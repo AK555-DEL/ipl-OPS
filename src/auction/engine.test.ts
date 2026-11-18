@@ -13,6 +13,7 @@ import {
   formatPlayerCardMeta,
   formatRole,
   FRANCHISE_TITLES,
+  getIplBidIncrement,
   getPlayerSubCategory,
   matchesCategoryFilter,
   parsePlayersCsv,
@@ -313,9 +314,11 @@ test('full 191-lot (11 titles + 180 players) dry run balances ledger and CSV for
     ev = executeCommand(ev, allLots, pidMap, 'MEGA', { type: 'next', pid: lot.id });
     ev = executeCommand(ev, allLots, pidMap, 'MEGA', { type: 'bid', team: t });
     if (!lot.isTitle) {
+      const firstInc = getIplBidIncrement(lot.base);
+      const secondInc = getIplBidIncrement(lot.base + firstInc);
       ev = executeCommand(ev, allLots, pidMap, 'MEGA', { type: 'bid', team: t2 });
       ev = executeCommand(ev, allLots, pidMap, 'MEGA', { type: 'bid', team: t });
-      sum += lot.base + 2 * lot.inc;
+      sum += lot.base + firstInc + secondInc;
     } else {
       sum += lot.base;
     }
@@ -452,3 +455,74 @@ test('capped and uncapped role sub-categories partition players cleanly and excl
   vm = buildViewModel(ev, allLots, pidMap, 'MEGA', 3000);
   assert.ok(vm.lot && matchesCategoryFilter(vm.lot.p, 'UNCAPPED_WK'));
 });
+
+test('IPL slab auto-increment rules apply across <4 Cr, 4-10 Cr, 10-20 Cr, and >20 Cr thresholds', () => {
+  // Pure slab helper boundary checks
+  assert.equal(getIplBidIncrement(30), 25);
+  assert.equal(getIplBidIncrement(200), 25);
+  assert.equal(getIplBidIncrement(375), 25);
+  assert.equal(getIplBidIncrement(400), 50);
+  assert.equal(getIplBidIncrement(950), 50);
+  assert.equal(getIplBidIncrement(1000), 100);
+  assert.equal(getIplBidIncrement(1900), 100);
+  assert.equal(getIplBidIncrement(2000), 200);
+  assert.equal(getIplBidIncrement(2400), 200);
+
+  // First click opens at base price; subsequent clicks follow IPL slabs automatically
+  const lowBasePlayer = csvPlayers.find((p) => p.base === 30)!;
+  let ev = runSeq('MEGA', [{ type: 'next', pid: lowBasePlayer.id }], 10_000);
+  let vm = buildViewModel(ev, allLots, pidMap, 'MEGA', 10_000);
+  assert.equal(vm.lot?.team, null);
+  assert.equal(vm.lot?.price, 30);
+  assert.equal(vm.lot?.inc, 25);
+
+  // Opening bid stays at base (30 L)
+  ev = executeCommand(ev, allLots, pidMap, 'MEGA', { type: 'bid', team: 't1' }, 11_000);
+  vm = buildViewModel(ev, allLots, pidMap, 'MEGA', 11_000);
+  assert.equal(vm.lot?.team, 't1');
+  assert.equal(vm.lot?.price, 30);
+  assert.equal(vm.lot?.inc, 25);
+
+  // Next bid auto-adds +25 L -> 55 L
+  ev = executeCommand(ev, allLots, pidMap, 'MEGA', { type: 'bid', team: 't2' }, 12_000);
+  vm = buildViewModel(ev, allLots, pidMap, 'MEGA', 12_000);
+  assert.equal(vm.lot?.team, 't2');
+  assert.equal(vm.lot?.price, 55);
+  assert.equal(vm.lot?.inc, 25);
+
+  // Threshold 1: 3.75 Cr (375 L) -> +25 L -> 4.00 Cr (400 L), then next click adds +50 L -> 4.50 Cr (450 L)
+  ev = executeCommand(ev, allLots, pidMap, 'MEGA', { type: 'custom', team: 't1', price: 375 }, 13_000);
+  vm = buildViewModel(ev, allLots, pidMap, 'MEGA', 13_000);
+  assert.equal(vm.lot?.inc, 25);
+  ev = executeCommand(ev, allLots, pidMap, 'MEGA', { type: 'bid', team: 't2' }, 14_000);
+  vm = buildViewModel(ev, allLots, pidMap, 'MEGA', 14_000);
+  assert.equal(vm.lot?.price, 400);
+  assert.equal(vm.lot?.inc, 50);
+  ev = executeCommand(ev, allLots, pidMap, 'MEGA', { type: 'bid', team: 't1' }, 15_000);
+  vm = buildViewModel(ev, allLots, pidMap, 'MEGA', 15_000);
+  assert.equal(vm.lot?.price, 450);
+  assert.equal(vm.lot?.inc, 50);
+
+  // Threshold 2: 9.50 Cr (950 L) -> +50 L -> 10.00 Cr (1000 L), then next click adds +1.00 Cr (100 L) -> 11.00 Cr
+  ev = executeCommand(ev, allLots, pidMap, 'MEGA', { type: 'custom', team: 't2', price: 950 }, 16_000);
+  ev = executeCommand(ev, allLots, pidMap, 'MEGA', { type: 'bid', team: 't1' }, 17_000);
+  vm = buildViewModel(ev, allLots, pidMap, 'MEGA', 17_000);
+  assert.equal(vm.lot?.price, 1000);
+  assert.equal(vm.lot?.inc, 100);
+  ev = executeCommand(ev, allLots, pidMap, 'MEGA', { type: 'bid', team: 't2' }, 18_000);
+  vm = buildViewModel(ev, allLots, pidMap, 'MEGA', 18_000);
+  assert.equal(vm.lot?.price, 1100);
+  assert.equal(vm.lot?.inc, 100);
+
+  // Threshold 3: 19.00 Cr (1900 L) -> +1.00 Cr -> 20.00 Cr (2000 L), then next click adds +2.00 Cr (200 L) -> 22.00 Cr
+  ev = executeCommand(ev, allLots, pidMap, 'MEGA', { type: 'custom', team: 't1', price: 1900 }, 19_000);
+  ev = executeCommand(ev, allLots, pidMap, 'MEGA', { type: 'bid', team: 't2' }, 20_000);
+  vm = buildViewModel(ev, allLots, pidMap, 'MEGA', 20_000);
+  assert.equal(vm.lot?.price, 2000);
+  assert.equal(vm.lot?.inc, 200);
+  ev = executeCommand(ev, allLots, pidMap, 'MEGA', { type: 'bid', team: 't1' }, 21_000);
+  vm = buildViewModel(ev, allLots, pidMap, 'MEGA', 21_000);
+  assert.equal(vm.lot?.price, 2200);
+  assert.equal(vm.lot?.inc, 200);
+});
+

@@ -21,7 +21,12 @@ import {
   Zap,
 } from 'lucide-react';
 import type { AuctionViewModel, CommandBody, LotCategory } from '../auction/types.ts';
-import { formatCurrency, formatLakhs, formatPlayerCardMeta } from '../auction/engine.ts';
+import {
+  formatCurrency,
+  formatLakhs,
+  formatPlayerCardMeta,
+  getIplBidIncrement,
+} from '../auction/engine.ts';
 import { useAuth } from '../contexts/AuthContext.tsx';
 import { useAudioSettings } from '../contexts/AudioSettingsContext.tsx';
 import { GlobalSoundControl } from './GlobalSoundControl.tsx';
@@ -182,7 +187,9 @@ export function BidderConsole({
     onToast(`Joined room as ${res.name || res.short}`);
   };
 
-  const handleJumpBid = async (deltaLakhs: number) => {
+  const activeIncrement = lot ? getIplBidIncrement(lot.price) : 25;
+
+  const handleAutoBid = async () => {
     if (!lot || busy || !myTeam || !hasRoomAccess) return;
     if (myTeam.lead) {
       onToast(`${myTeam.short} already holds the highest bid`);
@@ -192,7 +199,7 @@ export function BidderConsole({
       onToast(`${myTeam.short}: ${myTeam.block}`);
       return;
     }
-    await onSend({ type: 'jump', team: myTeam.id, delta: deltaLakhs });
+    await onSend({ type: 'bid', team: myTeam.id });
   };
 
   const handleCustomBid = async (e: React.FormEvent) => {
@@ -216,33 +223,12 @@ export function BidderConsole({
     if (ok) setCustomCr('');
   };
 
-  const jumpOptions: Array<{ delta: number; label: string; sub: string; accent?: boolean }> = lot
-    ? lot.team === null
-      ? [
-          { delta: 0, label: 'OPEN AT BASE', sub: formatCurrency(lot.price), accent: true },
-          { delta: 25, label: '+₹25 L', sub: `→ ${formatCurrency(lot.price + 25)}` },
-          { delta: 50, label: '+₹50 L', sub: `→ ${formatCurrency(lot.price + 50)}` },
-          { delta: 100, label: '+₹1.00 Cr', sub: `→ ${formatCurrency(lot.price + 100)}` },
-          { delta: 200, label: '+₹2.00 Cr', sub: `→ ${formatCurrency(lot.price + 200)}` },
-          { delta: 500, label: '+₹5.00 Cr', sub: `→ ${formatCurrency(lot.price + 500)}` },
-        ]
-      : [
-          {
-            delta: lot.p.inc,
-            label: `+${formatCurrency(lot.p.inc)}`,
-            sub: `→ ${formatCurrency(lot.price + lot.p.inc)}`,
-            accent: true,
-          },
-          ...[25, 50, 100, 200, 500, 1000]
-            .filter((d) => d > lot.p.inc)
-            .slice(0, 5)
-            .map((d) => ({
-              delta: d,
-              label: `+${formatCurrency(d)}`,
-              sub: `→ ${formatCurrency(lot.price + d)}`,
-            })),
-        ]
-    : [];
+  const iplSlabs = [
+    { range: '< ₹4 Cr', step: '+₹25 L', inc: 25 },
+    { range: '₹4–10 Cr', step: '+₹50 L', inc: 50 },
+    { range: '₹10–20 Cr', step: '+₹1.00 Cr', inc: 100 },
+    { range: '> ₹20 Cr', step: '+₹2.00 Cr', inc: 200 },
+  ] as const;
 
   const headerBar = (
     <header className="h-12 bg-[#0e0b21] border-b border-[#504533] px-3.5 flex items-center justify-between gap-2 shrink-0">
@@ -621,13 +607,13 @@ export function BidderConsole({
                   ) : (
                     <div className="font-[JetBrains_Mono] text-[11px] text-[#d5c4ac] flex items-center gap-1.5">
                       <Zap className="w-4 h-4 text-[#fdb813] shrink-0" />
-                      <span>Tap &ldquo;OPEN AT BASE&rdquo; or any jump as {myTeam.short}!</span>
+                      <span>Tap &ldquo;OPEN AT BASE&rdquo; to bid automatically as {myTeam.short}!</span>
                     </div>
                   )}
                 </div>
               </div>
 
-              <div className="flex-1 flex flex-col justify-center bg-[#1c192f]/90 border border-[#504533] rounded-lg p-3 min-h-0">
+              <div className="flex-1 flex flex-col justify-between gap-3 bg-[#1c192f]/90 border border-[#504533] rounded-lg p-3.5 min-h-0">
                 <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
                   <div className="flex items-center gap-2 font-[JetBrains_Mono] text-[11px]">
                     <span className="text-[#9d8f79] uppercase">BIDDING AS:</span>
@@ -648,36 +634,54 @@ export function BidderConsole({
                     </span>
                   ) : (
                     <span className="font-[JetBrains_Mono] text-[10px] text-[#4edea3]">
-                      CLICK ANY JUMP = INSTANT BID
+                      AUTO-INCREMENT BY IPL SLAB
                     </span>
                   )}
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2" data-testid="bidder-jump-grid">
-                  {jumpOptions.map((opt) => (
-                    <button
-                      key={opt.delta}
-                      type="button"
-                      disabled={busy || myTeam.lead || Boolean(myTeam.block)}
-                      onClick={() => handleJumpBid(opt.delta)}
-                      className={`min-h-[68px] rounded-lg border-2 px-2.5 py-2 flex flex-col items-center justify-center transition-all active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed ${
-                        opt.accent
-                          ? 'bg-[#fdb813] hover:bg-[#ffbb1e] border-[#ffdb9f] text-[#271900] shadow-lg'
-                          : 'bg-[#201d33] hover:bg-[#2b273e] border-[#fdb813]/60 hover:border-[#fdb813] text-[#e6defe]'
-                      }`}
-                    >
-                      <span className="font-[JetBrains_Mono] text-lg font-black leading-none">
-                        {opt.label}
-                      </span>
-                      <span
-                        className={`font-[JetBrains_Mono] text-[11px] font-bold mt-1 ${
-                          opt.accent ? 'text-[#271900]/85' : 'text-[#4edea3]'
+                {/* IPL Auto-Increment Slabs */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 mb-2.5 font-[JetBrains_Mono] text-[10px]">
+                  {iplSlabs.map((slab) => {
+                    const isActive = lot.team !== null && activeIncrement === slab.inc;
+                    return (
+                      <div
+                        key={slab.range}
+                        className={`px-2 py-1 rounded border flex items-center justify-between gap-1 ${
+                          isActive
+                            ? 'bg-[#fdb813]/20 border-[#fdb813] text-[#ffdb9f] font-extrabold'
+                            : 'bg-[#141026] border-[#504533]/70 text-[#9d8f79]'
                         }`}
                       >
-                        {opt.sub}
-                      </span>
-                    </button>
-                  ))}
+                        <span>{slab.range}</span>
+                        <span className={isActive ? 'text-[#fdb813]' : 'text-[#4edea3] font-bold'}>
+                          {slab.step}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div data-testid="bidder-jump-grid" className="flex-1 flex flex-col justify-center min-h-[100px]">
+                  <button
+                    type="button"
+                    disabled={busy || myTeam.lead || Boolean(myTeam.block)}
+                    onClick={() => void handleAutoBid()}
+                    data-testid="bidder-auto-bid-btn"
+                    className="w-full h-full min-h-[96px] max-h-[180px] rounded-xl border-2 px-4 py-4 flex flex-col items-center justify-center transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed bg-[#fdb813] hover:bg-[#ffbb1e] border-[#ffdb9f] text-[#271900] shadow-lg"
+                  >
+                    <span className="font-[Space_Grotesk] text-2xl sm:text-3xl font-black leading-none tracking-tight">
+                      {lot.team === null
+                        ? `OPEN AT BASE · ₹${formatLakhs(lot.price)}`
+                        : `BID +₹${formatLakhs(activeIncrement)} → ₹${formatLakhs(lot.next)}`}
+                    </span>
+                    <span className="font-[JetBrains_Mono] text-xs font-bold text-[#271900]/80 mt-1.5">
+                      {myTeam.lead
+                        ? `${myTeam.short} holds highest bid`
+                        : myTeam.block
+                          ? `Blocked: ${myTeam.block}`
+                          : `Click to place automatic bid as ${myTeam.name} (${myTeam.short})`}
+                    </span>
+                  </button>
                 </div>
 
                 <form onSubmit={handleCustomBid} className="flex items-center gap-2 mt-2.5">
@@ -708,7 +712,7 @@ export function BidderConsole({
               </h1>
               <p className="font-[JetBrains_Mono] text-xs text-[#d5c4ac] max-w-md mx-auto">
                 Keep this console open as <strong className="text-[#fdb813]">{myTeam.name}</strong>.
-                Jump buttons unlock the moment a lot enters the Arena.
+                Auto-bid unlocks the moment a lot enters the Arena.
               </p>
               {vm.upNext.length > 0 && (
                 <div className="max-w-2xl mx-auto pt-2">

@@ -511,10 +511,16 @@ export function replayEvents(
   return events.reduce((acc, ev) => applyEvent(acc, ev, pidMap), initState(preset));
 }
 
-export function nextBidPrice(lot: InternalLotState, pidMap: Map<string, Player>): number {
+export function getIplBidIncrement(priceLakhs: number): number {
+  if (priceLakhs < 400) return 25; // Below 4 Cr: +25 L
+  if (priceLakhs < 1000) return 50; // 4 Cr to below 10 Cr: +50 L
+  if (priceLakhs < 2000) return 100; // 10 Cr to 20 Cr: +1 Cr
+  return 200; // Above 20 Cr: +2 Cr
+}
+
+export function nextBidPrice(lot: InternalLotState, _pidMap?: Map<string, Player>): number {
   if (lot.team === null) return lot.price;
-  const p = pidMap.get(lot.pid)!;
-  return lot.price + p.inc;
+  return lot.price + getIplBidIncrement(lot.price);
 }
 
 export function checkBidEligibility(
@@ -1141,6 +1147,7 @@ export function buildViewModel(
             team: l.team,
             trail: l.trail.slice(-6),
             next: np,
+            inc: getIplBidIncrement(l.price),
             bidCount: l.trail.length,
             lastTimestamp: l.trail.length ? l.trail[l.trail.length - 1].ts : null,
             startedAt: l.startedAt,
