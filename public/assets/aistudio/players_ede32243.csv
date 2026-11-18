@@ -1,0 +1,181 @@
+player_id,name,jersey_number,deck_number,deck_name,player_era,nationality_category,country,country_code,role,is_wicketkeeper,popularity_score,batting_metric,bowling_metric,keeping_metric,overall_rating,base_price_lakhs,base_price_display,bid_increment_lakhs,photo_filename,photo_path
+IPL-001,Sachin Tendulkar,10,1,Mavericks,Retired Legend,Indian,India,IND,Batsman,False,100,99,35,0,99,200,₹2.00 Cr,25,sachin_tendulkar.png,/assets/players/deck_1/sachin_tendulkar.png
+IPL-002,MS Dhoni,7,1,Mavericks,Active,Indian,India,IND,Wicketkeeper,True,100,91,10,99,96,200,₹2.00 Cr,25,ms_dhoni.png,/assets/players/deck_1/ms_dhoni.png
+IPL-003,Virat Kohli,18,1,Mavericks,Active,Indian,India,IND,Batsman,False,100,98,25,0,98,200,₹2.00 Cr,25,virat_kohli.png,/assets/players/deck_1/virat_kohli.png
+IPL-004,Rohit Sharma,45,1,Mavericks,Active,Indian,India,IND,Batsman,False,99,96,30,0,97,200,₹2.00 Cr,25,rohit_sharma.png,/assets/players/deck_1/rohit_sharma.png
+IPL-005,Suresh Raina,3,1,Mavericks,Retired Legend,Indian,India,IND,Batsman,False,97,93,55,0,94,200,₹2.00 Cr,25,suresh_raina.png,/assets/players/deck_1/suresh_raina.png
+IPL-006,Yuvraj Singh,12,1,Mavericks,Retired Legend,Indian,India,IND,All-Rounder,False,98,92,76,0,86,200,₹2.00 Cr,25,yuvraj_singh.png,/assets/players/deck_1/yuvraj_singh.png
+IPL-007,Virender Sehwag,44,1,Mavericks,Retired Legend,Indian,India,IND,Batsman,False,96,95,40,0,95,200,₹2.00 Cr,25,virender_sehwag.png,/assets/players/deck_1/virender_sehwag.png
+IPL-008,Gautam Gambhir,5,1,Mavericks,Retired Legend,Indian,India,IND,Batsman,False,95,91,10,0,92,200,₹2.00 Cr,25,gautam_gambhir.png,/assets/players/deck_1/gautam_gambhir.png
+IPL-009,Shikhar Dhawan,42,1,Mavericks,Retired Legend,Indian,India,IND,Batsman,False,94,92,10,0,92,150,₹1.50 Cr,20,shikhar_dhawan.png,/assets/players/deck_1/shikhar_dhawan.png
+IPL-010,Ravichandran Ashwin,99,1,Mavericks,Active,Indian,India,IND,All-Rounder,False,94,68,92,0,82,150,₹1.50 Cr,20,ravichandran_ashwin.png,/assets/players/deck_1/ravichandran_ashwin.png
+IPL-011,Zaheer Khan,34,1,Mavericks,Retired Legend,Indian,India,IND,Bowler,False,95,25,94,0,94,200,₹2.00 Cr,25,zaheer_khan.png,/assets/players/deck_1/zaheer_khan.png
+IPL-012,Harbhajan Singh,27,1,Mavericks,Retired Legend,Indian,India,IND,Bowler,False,94,58,92,0,92,150,₹1.50 Cr,20,harbhajan_singh.png,/assets/players/deck_1/harbhajan_singh.png
+IPL-013,Anil Kumble,2,1,Mavericks,Retired Legend,Indian,India,IND,Bowler,False,95,35,95,0,95,200,₹2.00 Cr,25,anil_kumble.png,/assets/players/deck_1/anil_kumble.png
+IPL-014,Rahul Dravid,19,1,Mavericks,Retired Legend,Indian,India,IND,Batsman,False,96,90,10,0,92,200,₹2.00 Cr,25,rahul_dravid.png,/assets/players/deck_1/rahul_dravid.png
+IPL-015,Sourav Ganguly,24,1,Mavericks,Retired Legend,Indian,India,IND,Batsman,False,96,89,52,0,91,200,₹2.00 Cr,25,sourav_ganguly.png,/assets/players/deck_1/sourav_ganguly.png
+IPL-016,Irfan Pathan,56,1,Mavericks,Retired Legend,Indian,India,IND,All-Rounder,False,93,76,88,0,84,150,₹1.50 Cr,20,irfan_pathan.png,/assets/players/deck_1/irfan_pathan.png
+IPL-017,Yusuf Pathan,28,1,Mavericks,Retired Legend,Indian,India,IND,All-Rounder,False,93,88,70,0,81,150,₹1.50 Cr,20,yusuf_pathan.png,/assets/players/deck_1/yusuf_pathan.png
+IPL-018,Robin Uthappa,37,1,Mavericks,Retired Legend,Indian,India,IND,Wicketkeeper,True,92,88,0,82,87,150,₹1.50 Cr,20,robin_uthappa.png,/assets/players/deck_1/robin_uthappa.png
+IPL-019,Ambati Rayudu,9,1,Mavericks,Retired Legend,Indian,India,IND,Batsman,False,92,88,0,0,89,150,₹1.50 Cr,20,ambati_rayudu.png,/assets/players/deck_1/ambati_rayudu.png
+IPL-020,Dinesh Karthik,19,1,Mavericks,Retired Legend,Indian,India,IND,Wicketkeeper,True,94,89,0,90,90,150,₹1.50 Cr,20,dinesh_karthik.png,/assets/players/deck_1/dinesh_karthik.png
+IPL-021,AB de Villiers,17,1,Mavericks,Retired Legend,Overseas,South Africa,RSA,Wicketkeeper,True,100,99,0,88,95,200,₹2.00 Cr,25,ab_de_villiers.png,/assets/players/deck_1/ab_de_villiers.png
+IPL-022,Chris Gayle,333,1,Mavericks,Retired Legend,Overseas,West Indies,WI,Batsman,False,99,98,55,0,98,200,₹2.00 Cr,25,chris_gayle.png,/assets/players/deck_1/chris_gayle.png
+IPL-023,Lasith Malinga,99,1,Mavericks,Retired Legend,Overseas,Sri Lanka,SL,Bowler,False,98,20,98,0,98,200,₹2.00 Cr,25,lasith_malinga.png,/assets/players/deck_1/lasith_malinga.png
+IPL-024,Kieron Pollard,55,1,Mavericks,Retired Legend,Overseas,West Indies,WI,All-Rounder,False,97,92,84,0,89,200,₹2.00 Cr,25,kieron_pollard.png,/assets/players/deck_1/kieron_pollard.png
+IPL-025,Dwayne Bravo,47,1,Mavericks,Retired Legend,Overseas,West Indies,WI,All-Rounder,False,97,82,94,0,89,200,₹2.00 Cr,25,dwayne_bravo.png,/assets/players/deck_1/dwayne_bravo.png
+IPL-026,Shane Watson,33,1,Mavericks,Retired Legend,Overseas,Australia,AUS,All-Rounder,False,96,94,86,0,91,200,₹2.00 Cr,25,shane_watson.png,/assets/players/deck_1/shane_watson.png
+IPL-027,Shane Warne,23,1,Mavericks,Retired Legend,Overseas,Australia,AUS,Bowler,False,97,40,97,0,97,200,₹2.00 Cr,25,shane_warne.png,/assets/players/deck_1/shane_warne.png
+IPL-028,Jacques Kallis,3,1,Mavericks,Retired Legend,Overseas,South Africa,RSA,All-Rounder,False,95,93,88,0,91,200,₹2.00 Cr,25,jacques_kallis.png,/assets/players/deck_1/jacques_kallis.png
+IPL-029,Brendon McCullum,42,1,Mavericks,Retired Legend,Overseas,New Zealand,NZ,Wicketkeeper,True,95,93,0,86,91,200,₹2.00 Cr,25,brendon_mccullum.png,/assets/players/deck_1/brendon_mccullum.png
+IPL-030,Adam Gilchrist,18,1,Mavericks,Retired Legend,Overseas,Australia,AUS,Wicketkeeper,True,96,94,0,94,94,200,₹2.00 Cr,25,adam_gilchrist.png,/assets/players/deck_1/adam_gilchrist.png
+IPL-031,Suryakumar Yadav,63,2,Capped Batsmen,Active,Indian,India,IND,Batsman,False,91,95,10,0,94,200,₹2.00 Cr,25,suryakumar_yadav.png,/assets/players/deck_2/suryakumar_yadav.png
+IPL-032,Shubman Gill,77,2,Capped Batsmen,Active,Indian,India,IND,Batsman,False,90,93,10,0,92,200,₹2.00 Cr,25,shubman_gill.png,/assets/players/deck_2/shubman_gill.png
+IPL-033,Yashasvi Jaiswal,64,2,Capped Batsmen,Active,Indian,India,IND,Batsman,False,89,92,15,0,91,200,₹2.00 Cr,25,yashasvi_jaiswal.png,/assets/players/deck_2/yashasvi_jaiswal.png
+IPL-034,Ruturaj Gaikwad,31,2,Capped Batsmen,Active,Indian,India,IND,Batsman,False,88,91,10,0,90,200,₹2.00 Cr,25,ruturaj_gaikwad.png,/assets/players/deck_2/ruturaj_gaikwad.png
+IPL-035,Shreyas Iyer,96,2,Capped Batsmen,Active,Indian,India,IND,Batsman,False,88,89,15,0,89,200,₹2.00 Cr,25,shreyas_iyer.png,/assets/players/deck_2/shreyas_iyer.png
+IPL-036,Rinku Singh,35,2,Capped Batsmen,Active,Indian,India,IND,Batsman,False,89,88,10,0,88,200,₹2.00 Cr,25,rinku_singh.png,/assets/players/deck_2/rinku_singh.png
+IPL-037,Tilak Varma,9,2,Capped Batsmen,Active,Indian,India,IND,Batsman,False,85,87,25,0,86,150,₹1.50 Cr,20,tilak_varma.png,/assets/players/deck_2/tilak_varma.png
+IPL-038,Sai Sudharsan,23,2,Capped Batsmen,Active,Indian,India,IND,Batsman,False,82,86,10,0,85,150,₹1.50 Cr,20,sai_sudharsan.png,/assets/players/deck_2/sai_sudharsan.png
+IPL-039,Rajat Patidar,97,2,Capped Batsmen,Active,Indian,India,IND,Batsman,False,83,85,10,0,84,150,₹1.50 Cr,20,rajat_patidar.png,/assets/players/deck_2/rajat_patidar.png
+IPL-040,Ajinkya Rahane,27,2,Capped Batsmen,Active,Indian,India,IND,Batsman,False,84,83,10,0,83,125,₹1.25 Cr,20,ajinkya_rahane.png,/assets/players/deck_2/ajinkya_rahane.png
+IPL-041,Manish Pandey,21,2,Capped Batsmen,Active,Indian,India,IND,Batsman,False,78,80,10,0,80,100,₹1.00 Cr,20,manish_pandey.png,/assets/players/deck_2/manish_pandey.png
+IPL-042,Mayank Agarwal,16,2,Capped Batsmen,Active,Indian,India,IND,Batsman,False,79,81,10,0,80,100,₹1.00 Cr,20,mayank_agarwal.png,/assets/players/deck_2/mayank_agarwal.png
+IPL-043,Prithvi Shaw,100,2,Capped Batsmen,Active,Indian,India,IND,Batsman,False,80,81,10,0,81,100,₹1.00 Cr,20,prithvi_shaw.png,/assets/players/deck_2/prithvi_shaw.png
+IPL-044,Devdutt Padikkal,37,2,Capped Batsmen,Active,Indian,India,IND,Batsman,False,77,80,10,0,79,100,₹1.00 Cr,20,devdutt_padikkal.png,/assets/players/deck_2/devdutt_padikkal.png
+IPL-045,Rahul Tripathi,52,2,Capped Batsmen,Active,Indian,India,IND,Batsman,False,78,82,10,0,81,125,₹1.25 Cr,20,rahul_tripathi.png,/assets/players/deck_2/rahul_tripathi.png
+IPL-046,Sarfaraz Khan,97,2,Capped Batsmen,Active,Indian,India,IND,Batsman,False,75,80,10,0,79,75,₹75 Lakhs,10,sarfaraz_khan.png,/assets/players/deck_2/sarfaraz_khan.png
+IPL-047,Travis Head,62,2,Capped Batsmen,Active,Overseas,Australia,AUS,Batsman,False,91,95,30,0,94,200,₹2.00 Cr,25,travis_head.png,/assets/players/deck_2/travis_head.png
+IPL-048,Faf du Plessis,13,2,Capped Batsmen,Active,Overseas,South Africa,RSA,Batsman,False,90,91,10,0,91,200,₹2.00 Cr,25,faf_du_plessis.png,/assets/players/deck_2/faf_du_plessis.png
+IPL-049,David Miller,10,2,Capped Batsmen,Active,Overseas,South Africa,RSA,Batsman,False,88,90,10,0,90,200,₹2.00 Cr,25,david_miller.png,/assets/players/deck_2/david_miller.png
+IPL-050,Kane Williamson,22,2,Capped Batsmen,Active,Overseas,New Zealand,NZ,Batsman,False,89,88,15,0,88,200,₹2.00 Cr,25,kane_williamson.png,/assets/players/deck_2/kane_williamson.png
+IPL-051,Shimron Hetmyer,2,2,Capped Batsmen,Active,Overseas,West Indies,WI,Batsman,False,84,87,10,0,86,150,₹1.50 Cr,20,shimron_hetmyer.png,/assets/players/deck_2/shimron_hetmyer.png
+IPL-052,Jake Fraser-McGurk,23,2,Capped Batsmen,Active,Overseas,Australia,AUS,Batsman,False,85,86,10,0,86,150,₹1.50 Cr,20,jake_fraser_mcgurk.png,/assets/players/deck_2/jake_fraser_mcgurk.png
+IPL-053,Harry Brook,88,2,Capped Batsmen,Active,Overseas,England,ENG,Batsman,False,82,85,10,0,84,150,₹1.50 Cr,20,harry_brook.png,/assets/players/deck_2/harry_brook.png
+IPL-054,Rovman Powell,52,2,Capped Batsmen,Active,Overseas,West Indies,WI,Batsman,False,81,84,25,0,83,125,₹1.25 Cr,20,rovman_powell.png,/assets/players/deck_2/rovman_powell.png
+IPL-055,Tristan Stubbs,30,2,Capped Batsmen,Active,Overseas,South Africa,RSA,Batsman,False,84,88,20,0,87,150,₹1.50 Cr,20,tristan_stubbs.png,/assets/players/deck_2/tristan_stubbs.png
+IPL-056,Jasprit Bumrah,93,3,Capped Bowlers,Active,Indian,India,IND,Bowler,False,91,20,95,0,94,200,₹2.00 Cr,25,jasprit_bumrah.png,/assets/players/deck_3/jasprit_bumrah.png
+IPL-057,Mohammed Shami,11,3,Capped Bowlers,Active,Indian,India,IND,Bowler,False,90,20,93,0,92,200,₹2.00 Cr,25,mohammed_shami.png,/assets/players/deck_3/mohammed_shami.png
+IPL-058,Arshdeep Singh,2,3,Capped Bowlers,Active,Indian,India,IND,Bowler,False,88,18,91,0,90,200,₹2.00 Cr,25,arshdeep_singh.png,/assets/players/deck_3/arshdeep_singh.png
+IPL-059,Kuldeep Yadav,23,3,Capped Bowlers,Active,Indian,India,IND,Bowler,False,88,25,92,0,91,200,₹2.00 Cr,25,kuldeep_yadav.png,/assets/players/deck_3/kuldeep_yadav.png
+IPL-060,Yuzvendra Chahal,3,3,Capped Bowlers,Active,Indian,India,IND,Bowler,False,89,10,92,0,91,200,₹2.00 Cr,25,yuzvendra_chahal.png,/assets/players/deck_3/yuzvendra_chahal.png
+IPL-061,Mohammed Siraj,73,3,Capped Bowlers,Active,Indian,India,IND,Bowler,False,88,18,89,0,89,200,₹2.00 Cr,25,mohammed_siraj.png,/assets/players/deck_3/mohammed_siraj.png
+IPL-062,Ravi Bishnoi,56,3,Capped Bowlers,Active,Indian,India,IND,Bowler,False,85,20,88,0,87,200,₹2.00 Cr,25,ravi_bishnoi.png,/assets/players/deck_3/ravi_bishnoi.png
+IPL-063,Varun Chakaravarthy,29,3,Capped Bowlers,Active,Indian,India,IND,Bowler,False,84,12,89,0,88,200,₹2.00 Cr,25,varun_chakaravarthy.png,/assets/players/deck_3/varun_chakaravarthy.png
+IPL-064,Bhuvneshwar Kumar,15,3,Capped Bowlers,Active,Indian,India,IND,Bowler,False,87,32,86,0,86,150,₹1.50 Cr,20,bhuvneshwar_kumar.png,/assets/players/deck_3/bhuvneshwar_kumar.png
+IPL-065,T Natarajan,44,3,Capped Bowlers,Active,Indian,India,IND,Bowler,False,83,12,86,0,85,150,₹1.50 Cr,20,t_natarajan.png,/assets/players/deck_3/t_natarajan.png
+IPL-066,Deepak Chahar,90,3,Capped Bowlers,Active,Indian,India,IND,Bowler,False,84,35,85,0,85,150,₹1.50 Cr,20,deepak_chahar.png,/assets/players/deck_3/deepak_chahar.png
+IPL-067,Avesh Khan,6,3,Capped Bowlers,Active,Indian,India,IND,Bowler,False,80,18,84,0,83,125,₹1.25 Cr,20,avesh_khan.png,/assets/players/deck_3/avesh_khan.png
+IPL-068,Khaleel Ahmed,71,3,Capped Bowlers,Active,Indian,India,IND,Bowler,False,79,15,83,0,82,125,₹1.25 Cr,20,khaleel_ahmed.png,/assets/players/deck_3/khaleel_ahmed.png
+IPL-069,Mukesh Kumar,49,3,Capped Bowlers,Active,Indian,India,IND,Bowler,False,78,12,82,0,81,125,₹1.25 Cr,20,mukesh_kumar.png,/assets/players/deck_3/mukesh_kumar.png
+IPL-070,Prasidh Krishna,24,3,Capped Bowlers,Active,Indian,India,IND,Bowler,False,79,15,83,0,82,125,₹1.25 Cr,20,prasidh_krishna.png,/assets/players/deck_3/prasidh_krishna.png
+IPL-071,Umesh Yadav,19,3,Capped Bowlers,Active,Indian,India,IND,Bowler,False,78,30,80,0,80,100,₹1.00 Cr,20,umesh_yadav.png,/assets/players/deck_3/umesh_yadav.png
+IPL-072,Rashid Khan,19,3,Capped Bowlers,Active,Overseas,Afghanistan,AFG,Bowler,False,91,35,95,0,94,200,₹2.00 Cr,25,rashid_khan.png,/assets/players/deck_3/rashid_khan.png
+IPL-073,Mitchell Starc,56,3,Capped Bowlers,Active,Overseas,Australia,AUS,Bowler,False,90,30,92,0,92,200,₹2.00 Cr,25,mitchell_starc.png,/assets/players/deck_3/mitchell_starc.png
+IPL-074,Trent Boult,18,3,Capped Bowlers,Active,Overseas,New Zealand,NZ,Bowler,False,89,22,92,0,91,200,₹2.00 Cr,25,trent_boult.png,/assets/players/deck_3/trent_boult.png
+IPL-075,Matheesha Pathirana,81,3,Capped Bowlers,Active,Overseas,Sri Lanka,SL,Bowler,False,88,12,91,0,90,200,₹2.00 Cr,25,matheesha_pathirana.png,/assets/players/deck_3/matheesha_pathirana.png
+IPL-076,Kagiso Rabada,25,3,Capped Bowlers,Active,Overseas,South Africa,RSA,Bowler,False,88,28,90,0,90,200,₹2.00 Cr,25,kagiso_rabada.png,/assets/players/deck_3/kagiso_rabada.png
+IPL-077,Josh Hazlewood,38,3,Capped Bowlers,Active,Overseas,Australia,AUS,Bowler,False,86,18,90,0,89,200,₹2.00 Cr,25,josh_hazlewood.png,/assets/players/deck_3/josh_hazlewood.png
+IPL-078,Jofra Archer,22,3,Capped Bowlers,Active,Overseas,England,ENG,Bowler,False,87,32,89,0,88,200,₹2.00 Cr,25,jofra_archer.png,/assets/players/deck_3/jofra_archer.png
+IPL-079,Anrich Nortje,20,3,Capped Bowlers,Active,Overseas,South Africa,RSA,Bowler,False,83,15,86,0,85,150,₹1.50 Cr,20,anrich_nortje.png,/assets/players/deck_3/anrich_nortje.png
+IPL-080,Noor Ahmad,15,3,Capped Bowlers,Active,Overseas,Afghanistan,AFG,Bowler,False,82,18,86,0,85,150,₹1.50 Cr,20,noor_ahmad.png,/assets/players/deck_3/noor_ahmad.png
+IPL-081,Hardik Pandya,33,4,Capped All-Rounders,Active,Indian,India,IND,All-Rounder,False,91,88,86,0,88,200,₹2.00 Cr,25,hardik_pandya.png,/assets/players/deck_4/hardik_pandya.png
+IPL-082,Ravindra Jadeja,8,4,Capped All-Rounders,Active,Indian,India,IND,All-Rounder,False,91,85,88,0,87,200,₹2.00 Cr,25,ravindra_jadeja.png,/assets/players/deck_4/ravindra_jadeja.png
+IPL-083,Axar Patel,20,4,Capped All-Rounders,Active,Indian,India,IND,All-Rounder,False,88,83,88,0,86,200,₹2.00 Cr,25,axar_patel.png,/assets/players/deck_4/axar_patel.png
+IPL-084,Shivam Dube,25,4,Capped All-Rounders,Active,Indian,India,IND,All-Rounder,False,87,87,72,0,81,150,₹1.50 Cr,20,shivam_dube.png,/assets/players/deck_4/shivam_dube.png
+IPL-085,Nitish Kumar Reddy,8,4,Capped All-Rounders,Active,Indian,India,IND,All-Rounder,False,86,84,78,0,82,150,₹1.50 Cr,20,nitish_kumar_reddy.png,/assets/players/deck_4/nitish_kumar_reddy.png
+IPL-086,Washington Sundar,5,4,Capped All-Rounders,Active,Indian,India,IND,All-Rounder,False,83,76,82,0,80,125,₹1.25 Cr,20,washington_sundar.png,/assets/players/deck_4/washington_sundar.png
+IPL-087,Abhishek Sharma,4,4,Capped All-Rounders,Active,Indian,India,IND,All-Rounder,False,88,88,72,0,81,200,₹2.00 Cr,25,abhishek_sharma.png,/assets/players/deck_4/abhishek_sharma.png
+IPL-088,Riyan Parag,5,4,Capped All-Rounders,Active,Indian,India,IND,All-Rounder,False,85,85,71,0,79,150,₹1.50 Cr,20,riyan_parag.png,/assets/players/deck_4/riyan_parag.png
+IPL-089,Venkatesh Iyer,25,4,Capped All-Rounders,Active,Indian,India,IND,All-Rounder,False,84,84,71,0,79,150,₹1.50 Cr,20,venkatesh_iyer.png,/assets/players/deck_4/venkatesh_iyer.png
+IPL-090,Shardul Thakur,54,4,Capped All-Rounders,Active,Indian,India,IND,All-Rounder,False,83,72,82,0,78,125,₹1.25 Cr,20,shardul_thakur.png,/assets/players/deck_4/shardul_thakur.png
+IPL-091,Krunal Pandya,24,4,Capped All-Rounders,Active,Indian,India,IND,All-Rounder,False,82,76,81,0,79,100,₹1.00 Cr,20,krunal_pandya.png,/assets/players/deck_4/krunal_pandya.png
+IPL-092,Deepak Hooda,57,4,Capped All-Rounders,Active,Indian,India,IND,All-Rounder,False,77,76,70,0,74,75,₹75 Lakhs,10,deepak_hooda.png,/assets/players/deck_4/deepak_hooda.png
+IPL-093,Vijay Shankar,59,4,Capped All-Rounders,Active,Indian,India,IND,All-Rounder,False,76,76,71,0,74,75,₹75 Lakhs,10,vijay_shankar.png,/assets/players/deck_4/vijay_shankar.png
+IPL-094,Shahbaz Ahmed,21,4,Capped All-Rounders,Active,Indian,India,IND,All-Rounder,False,77,74,78,0,76,100,₹1.00 Cr,20,shahbaz_ahmed.png,/assets/players/deck_4/shahbaz_ahmed.png
+IPL-095,Rahul Tewatia,4,4,Capped All-Rounders,Active,Indian,India,IND,All-Rounder,False,82,81,70,0,77,100,₹1.00 Cr,20,rahul_tewatia.png,/assets/players/deck_4/rahul_tewatia.png
+IPL-096,Ramandeep Singh,13,4,Capped All-Rounders,Active,Indian,India,IND,All-Rounder,False,79,78,72,0,76,100,₹1.00 Cr,20,ramandeep_singh.png,/assets/players/deck_4/ramandeep_singh.png
+IPL-097,Andre Russell,12,4,Capped All-Rounders,Active,Overseas,West Indies,WI,All-Rounder,False,91,88,86,0,88,200,₹2.00 Cr,25,andre_russell.png,/assets/players/deck_4/andre_russell.png
+IPL-098,Sunil Narine,74,4,Capped All-Rounders,Active,Overseas,West Indies,WI,All-Rounder,False,91,85,88,0,87,200,₹2.00 Cr,25,sunil_narine.png,/assets/players/deck_4/sunil_narine.png
+IPL-099,Cameron Green,42,4,Capped All-Rounders,Active,Overseas,Australia,AUS,All-Rounder,False,89,87,83,0,86,200,₹2.00 Cr,25,cameron_green.png,/assets/players/deck_4/cameron_green.png
+IPL-100,Pat Cummins,30,4,Capped All-Rounders,Active,Overseas,Australia,AUS,All-Rounder,False,91,74,88,0,83,200,₹2.00 Cr,25,pat_cummins.png,/assets/players/deck_4/pat_cummins.png
+IPL-101,Glenn Maxwell,32,4,Capped All-Rounders,Active,Overseas,Australia,AUS,All-Rounder,False,89,86,78,0,83,200,₹2.00 Cr,25,glenn_maxwell.png,/assets/players/deck_4/glenn_maxwell.png
+IPL-102,Sam Curran,58,4,Capped All-Rounders,Active,Overseas,England,ENG,All-Rounder,False,87,81,84,0,83,150,₹1.50 Cr,20,sam_curran.png,/assets/players/deck_4/sam_curran.png
+IPL-103,Marcus Stoinis,17,4,Capped All-Rounders,Active,Overseas,Australia,AUS,All-Rounder,False,86,86,78,0,83,150,₹1.50 Cr,20,marcus_stoinis.png,/assets/players/deck_4/marcus_stoinis.png
+IPL-104,Liam Livingstone,23,4,Capped All-Rounders,Active,Overseas,England,ENG,All-Rounder,False,86,85,76,0,81,150,₹1.50 Cr,20,liam_livingstone.png,/assets/players/deck_4/liam_livingstone.png
+IPL-105,Mitchell Santner,74,4,Capped All-Rounders,Active,Overseas,New Zealand,NZ,All-Rounder,False,82,74,85,0,80,150,₹1.50 Cr,20,mitchell_santner.png,/assets/players/deck_4/mitchell_santner.png
+IPL-106,Rishabh Pant,17,5,Capped Wicketkeepers,Active,Indian,India,IND,Wicketkeeper,True,91,91,0,92,91,200,₹2.00 Cr,25,rishabh_pant.png,/assets/players/deck_5/rishabh_pant.png
+IPL-107,KL Rahul,1,5,Capped Wicketkeepers,Active,Indian,India,IND,Wicketkeeper,True,90,91,0,88,90,200,₹2.00 Cr,25,kl_rahul.png,/assets/players/deck_5/kl_rahul.png
+IPL-108,Sanju Samson,11,5,Capped Wicketkeepers,Active,Indian,India,IND,Wicketkeeper,True,90,90,0,90,90,200,₹2.00 Cr,25,sanju_samson.png,/assets/players/deck_5/sanju_samson.png
+IPL-109,Ishan Kishan,32,5,Capped Wicketkeepers,Active,Indian,India,IND,Wicketkeeper,True,88,88,0,87,88,200,₹2.00 Cr,25,ishan_kishan.png,/assets/players/deck_5/ishan_kishan.png
+IPL-110,Dhruv Jurel,21,5,Capped Wicketkeepers,Active,Indian,India,IND,Wicketkeeper,True,84,84,0,89,86,150,₹1.50 Cr,20,dhruv_jurel.png,/assets/players/deck_5/dhruv_jurel.png
+IPL-111,Jitesh Sharma,99,5,Capped Wicketkeepers,Active,Indian,India,IND,Wicketkeeper,True,82,82,0,86,83,125,₹1.25 Cr,20,jitesh_sharma.png,/assets/players/deck_5/jitesh_sharma.png
+IPL-112,Wriddhiman Saha,6,5,Capped Wicketkeepers,Active,Indian,India,IND,Wicketkeeper,True,81,79,0,94,85,100,₹1.00 Cr,20,wriddhiman_saha.png,/assets/players/deck_5/wriddhiman_saha.png
+IPL-113,KS Bharat,14,5,Capped Wicketkeepers,Active,Indian,India,IND,Wicketkeeper,True,75,76,0,88,80,75,₹75 Lakhs,10,ks_bharat.png,/assets/players/deck_5/ks_bharat.png
+IPL-114,Prabhsimran Singh,84,5,Capped Wicketkeepers,Active,Indian,India,IND,Wicketkeeper,True,79,82,0,82,81,125,₹1.25 Cr,20,prabhsimran_singh.png,/assets/players/deck_5/prabhsimran_singh.png
+IPL-115,Abishek Porel,1,5,Capped Wicketkeepers,Active,Indian,India,IND,Wicketkeeper,True,78,81,0,83,81,100,₹1.00 Cr,20,abishek_porel.png,/assets/players/deck_5/abishek_porel.png
+IPL-116,Anuj Rawat,12,5,Capped Wicketkeepers,Active,Indian,India,IND,Wicketkeeper,True,75,77,0,82,78,75,₹75 Lakhs,10,anuj_rawat.png,/assets/players/deck_5/anuj_rawat.png
+IPL-117,Narayan Jagadeesan,18,5,Capped Wicketkeepers,Active,Indian,India,IND,Wicketkeeper,True,74,78,0,83,79,75,₹75 Lakhs,10,narayan_jagadeesan.png,/assets/players/deck_5/narayan_jagadeesan.png
+IPL-118,Upendra Yadav,45,5,Capped Wicketkeepers,Active,Indian,India,IND,Wicketkeeper,True,72,76,0,81,77,75,₹75 Lakhs,10,upendra_yadav.png,/assets/players/deck_5/upendra_yadav.png
+IPL-119,Vishnu Vinod,29,5,Capped Wicketkeepers,Active,Indian,India,IND,Wicketkeeper,True,73,77,0,80,77,75,₹75 Lakhs,10,vishnu_vinod.png,/assets/players/deck_5/vishnu_vinod.png
+IPL-120,Sheldon Jackson,15,5,Capped Wicketkeepers,Active,Indian,India,IND,Wicketkeeper,True,73,75,0,85,78,75,₹75 Lakhs,10,sheldon_jackson.png,/assets/players/deck_5/sheldon_jackson.png
+IPL-121,Baba Indrajith,10,5,Capped Wicketkeepers,Active,Indian,India,IND,Wicketkeeper,True,72,76,0,82,77,75,₹75 Lakhs,10,baba_indrajith.png,/assets/players/deck_5/baba_indrajith.png
+IPL-122,Jos Buttler,63,5,Capped Wicketkeepers,Active,Overseas,England,ENG,Wicketkeeper,True,91,92,0,90,91,200,₹2.00 Cr,25,jos_buttler.png,/assets/players/deck_5/jos_buttler.png
+IPL-123,Heinrich Klaasen,45,5,Capped Wicketkeepers,Active,Overseas,South Africa,RSA,Wicketkeeper,True,91,92,0,89,91,200,₹2.00 Cr,25,heinrich_klaasen.png,/assets/players/deck_5/heinrich_klaasen.png
+IPL-124,Nicholas Pooran,29,5,Capped Wicketkeepers,Active,Overseas,West Indies,WI,Wicketkeeper,True,90,91,0,89,90,200,₹2.00 Cr,25,nicholas_pooran.png,/assets/players/deck_5/nicholas_pooran.png
+IPL-125,Phil Salt,61,5,Capped Wicketkeepers,Active,Overseas,England,ENG,Wicketkeeper,True,88,89,0,87,88,200,₹2.00 Cr,25,phil_salt.png,/assets/players/deck_5/phil_salt.png
+IPL-126,Quinton de Kock,12,5,Capped Wicketkeepers,Active,Overseas,South Africa,RSA,Wicketkeeper,True,89,88,0,92,90,200,₹2.00 Cr,25,quinton_de_kock.png,/assets/players/deck_5/quinton_de_kock.png
+IPL-127,Rahmanullah Gurbaz,21,5,Capped Wicketkeepers,Active,Overseas,Afghanistan,AFG,Wicketkeeper,True,84,84,0,85,84,150,₹1.50 Cr,20,rahmanullah_gurbaz.png,/assets/players/deck_5/rahmanullah_gurbaz.png
+IPL-128,Jonny Bairstow,51,5,Capped Wicketkeepers,Active,Overseas,England,ENG,Wicketkeeper,True,86,86,0,85,86,150,₹1.50 Cr,20,jonny_bairstow.png,/assets/players/deck_5/jonny_bairstow.png
+IPL-129,Devon Conway,88,5,Capped Wicketkeepers,Active,Overseas,New Zealand,NZ,Wicketkeeper,True,86,87,0,84,86,150,₹1.50 Cr,20,devon_conway.png,/assets/players/deck_5/devon_conway.png
+IPL-130,Josh Inglis,48,5,Capped Wicketkeepers,Active,Overseas,Australia,AUS,Wicketkeeper,True,82,83,0,88,85,125,₹1.25 Cr,20,josh_inglis.png,/assets/players/deck_5/josh_inglis.png
+IPL-131,Shashank Singh,27,6,Uncapped Batsmen,Active,Indian,India,IND,Batsman,False,60,72,20,0,69,50,₹50 Lakhs,10,shashank_singh.png,/assets/players/deck_6/shashank_singh.png
+IPL-132,Ashutosh Sharma,41,6,Uncapped Batsmen,Active,Indian,India,IND,Batsman,False,59,71,10,0,68,50,₹50 Lakhs,10,ashutosh_sharma.png,/assets/players/deck_6/ashutosh_sharma.png
+IPL-133,Nehal Wadhera,19,6,Uncapped Batsmen,Active,Indian,India,IND,Batsman,False,58,70,15,0,67,50,₹50 Lakhs,10,nehal_wadhera.png,/assets/players/deck_6/nehal_wadhera.png
+IPL-134,Angkrish Raghuvanshi,18,6,Uncapped Batsmen,Active,Indian,India,IND,Batsman,False,57,69,10,0,66,50,₹50 Lakhs,10,angkrish_raghuvanshi.png,/assets/players/deck_6/angkrish_raghuvanshi.png
+IPL-135,Sameer Rizvi,7,6,Uncapped Batsmen,Active,Indian,India,IND,Batsman,False,56,67,10,0,64,50,₹50 Lakhs,10,sameer_rizvi.png,/assets/players/deck_6/sameer_rizvi.png
+IPL-136,Ayush Badoni,55,6,Uncapped Batsmen,Active,Indian,India,IND,Batsman,False,58,68,22,0,66,50,₹50 Lakhs,10,ayush_badoni.png,/assets/players/deck_6/ayush_badoni.png
+IPL-137,Naman Dhir,9,6,Uncapped Batsmen,Active,Indian,India,IND,Batsman,False,55,67,25,0,64,50,₹50 Lakhs,10,naman_dhir.png,/assets/players/deck_6/naman_dhir.png
+IPL-138,Abhinav Manohar,11,6,Uncapped Batsmen,Active,Indian,India,IND,Batsman,False,53,65,10,0,62,40,₹40 Lakhs,5,abhinav_manohar.png,/assets/players/deck_6/abhinav_manohar.png
+IPL-139,Abdul Samad,1,6,Uncapped Batsmen,Active,Indian,India,IND,Batsman,False,56,66,20,0,64,50,₹50 Lakhs,10,abdul_samad.png,/assets/players/deck_6/abdul_samad.png
+IPL-140,Mahipal Lomror,6,6,Uncapped Batsmen,Active,Indian,India,IND,Batsman,False,54,64,24,0,62,40,₹40 Lakhs,5,mahipal_lomror.png,/assets/players/deck_6/mahipal_lomror.png
+IPL-141,Atharva Taide,14,6,Uncapped Batsmen,Active,Indian,India,IND,Batsman,False,50,62,10,0,59,40,₹40 Lakhs,5,atharva_taide.png,/assets/players/deck_6/atharva_taide.png
+IPL-142,Shubham Dubey,32,6,Uncapped Batsmen,Active,Indian,India,IND,Batsman,False,48,61,10,0,58,40,₹40 Lakhs,5,shubham_dubey.png,/assets/players/deck_6/shubham_dubey.png
+IPL-143,Swastik Chikara,77,6,Uncapped Batsmen,Active,Indian,India,IND,Batsman,False,45,58,10,0,55,40,₹40 Lakhs,5,swastik_chikara.png,/assets/players/deck_6/swastik_chikara.png
+IPL-144,Shaik Rasheed,66,6,Uncapped Batsmen,Active,Indian,India,IND,Batsman,False,46,59,15,0,56,40,₹40 Lakhs,5,shaik_rasheed.png,/assets/players/deck_6/shaik_rasheed.png
+IPL-145,Musheer Khan,98,6,Uncapped Batsmen,Active,Indian,India,IND,Batsman,False,52,63,25,0,60,40,₹40 Lakhs,5,musheer_khan.png,/assets/players/deck_6/musheer_khan.png
+IPL-146,Priyansh Arya,24,6,Uncapped Batsmen,Active,Indian,India,IND,Batsman,False,49,64,10,0,60,40,₹40 Lakhs,5,priyansh_arya.png,/assets/players/deck_6/priyansh_arya.png
+IPL-147,Dewald Brevis,17,6,Uncapped Batsmen,Active,Overseas,South Africa,RSA,Batsman,False,60,71,20,0,68,50,₹50 Lakhs,10,dewald_brevis.png,/assets/players/deck_6/dewald_brevis.png
+IPL-148,Donovan Ferreira,55,6,Uncapped Batsmen,Active,Overseas,South Africa,RSA,Wicketkeeper,True,54,66,15,72,66,50,₹50 Lakhs,10,donovan_ferreira.png,/assets/players/deck_6/donovan_ferreira.png
+IPL-149,Matthew Breetzke,28,6,Uncapped Batsmen,Active,Overseas,South Africa,RSA,Batsman,False,50,64,0,0,60,40,₹40 Lakhs,5,matthew_breetzke.png,/assets/players/deck_6/matthew_breetzke.png
+IPL-150,Tim Robinson,12,6,Uncapped Batsmen,Active,Overseas,New Zealand,NZ,Batsman,False,48,63,0,0,59,40,₹40 Lakhs,5,tim_robinson.png,/assets/players/deck_6/tim_robinson.png
+IPL-151,Ollie Davies,15,6,Uncapped Batsmen,Active,Overseas,Australia,AUS,Batsman,False,47,62,10,0,58,40,₹40 Lakhs,5,ollie_davies.png,/assets/players/deck_6/ollie_davies.png
+IPL-152,Dan Mousley,8,6,Uncapped Batsmen,Active,Overseas,England,ENG,Batsman,False,46,61,25,0,57,40,₹40 Lakhs,5,dan_mousley.png,/assets/players/deck_6/dan_mousley.png
+IPL-153,Andries Gous,14,6,Uncapped Batsmen,Active,Overseas,United States,USA,Wicketkeeper,True,45,60,0,70,60,40,₹40 Lakhs,5,andries_gous.png,/assets/players/deck_6/andries_gous.png
+IPL-154,Sediqullah Atal,23,6,Uncapped Batsmen,Active,Overseas,Afghanistan,AFG,Batsman,False,44,59,0,0,55,40,₹40 Lakhs,5,sediqullah_atal.png,/assets/players/deck_6/sediqullah_atal.png
+IPL-155,Aaron Johnson,49,6,Uncapped Batsmen,Active,Overseas,Canada,CAN,Batsman,False,40,56,0,0,52,30,₹30 Lakhs,5,aaron_johnson.png,/assets/players/deck_6/aaron_johnson.png
+IPL-156,Harshit Rana,22,7,Uncapped Bowlers & ARs,Active,Indian,India,IND,Bowler,False,60,28,72,0,69,50,₹50 Lakhs,10,harshit_rana.png,/assets/players/deck_7/harshit_rana.png
+IPL-157,Mayank Yadav,8,7,Uncapped Bowlers & ARs,Active,Indian,India,IND,Bowler,False,60,15,72,0,69,50,₹50 Lakhs,10,mayank_yadav.png,/assets/players/deck_7/mayank_yadav.png
+IPL-158,Yash Dayal,13,7,Uncapped Bowlers & ARs,Active,Indian,India,IND,Bowler,False,58,15,70,0,67,50,₹50 Lakhs,10,yash_dayal.png,/assets/players/deck_7/yash_dayal.png
+IPL-159,Vaibhav Arora,11,7,Uncapped Bowlers & ARs,Active,Indian,India,IND,Bowler,False,55,18,68,0,65,50,₹50 Lakhs,10,vaibhav_arora.png,/assets/players/deck_7/vaibhav_arora.png
+IPL-160,Mohsin Khan,47,7,Uncapped Bowlers & ARs,Active,Indian,India,IND,Bowler,False,56,15,69,0,66,50,₹50 Lakhs,10,mohsin_khan.png,/assets/players/deck_7/mohsin_khan.png
+IPL-161,Akash Madhwal,25,7,Uncapped Bowlers & ARs,Active,Indian,India,IND,Bowler,False,55,15,68,0,65,50,₹50 Lakhs,10,akash_madhwal.png,/assets/players/deck_7/akash_madhwal.png
+IPL-162,Suyash Sharma,5,7,Uncapped Bowlers & ARs,Active,Indian,India,IND,Bowler,False,53,10,66,0,63,50,₹50 Lakhs,10,suyash_sharma.png,/assets/players/deck_7/suyash_sharma.png
+IPL-163,Prashant Veer,19,7,Uncapped Bowlers & ARs,Active,Indian,India,IND,All-Rounder,False,57,45,69,0,57,50,₹50 Lakhs,10,prashant_veer.png,/assets/players/deck_7/prashant_veer.png
+IPL-164,Kartik Sharma,31,7,Uncapped Bowlers & ARs,Active,Indian,India,IND,All-Rounder,False,56,44,68,0,56,50,₹50 Lakhs,10,kartik_sharma.png,/assets/players/deck_7/kartik_sharma.png
+IPL-165,Auqib Dar,29,7,Uncapped Bowlers & ARs,Active,Indian,India,IND,Bowler,False,54,25,67,0,64,50,₹50 Lakhs,10,auqib_dar.png,/assets/players/deck_7/auqib_dar.png
+IPL-166,Rasikh Salam,33,7,Uncapped Bowlers & ARs,Active,Indian,India,IND,Bowler,False,52,22,65,0,62,40,₹40 Lakhs,5,rasikh_salam.png,/assets/players/deck_7/rasikh_salam.png
+IPL-167,Vyshak Vijaykumar,17,7,Uncapped Bowlers & ARs,Active,Indian,India,IND,Bowler,False,51,20,64,0,61,40,₹40 Lakhs,5,vyshak_vijaykumar.png,/assets/players/deck_7/vyshak_vijaykumar.png
+IPL-168,Simarjeet Singh,98,7,Uncapped Bowlers & ARs,Active,Indian,India,IND,Bowler,False,49,15,62,0,59,40,₹40 Lakhs,5,simarjeet_singh.png,/assets/players/deck_7/simarjeet_singh.png
+IPL-169,Manav Suthar,44,7,Uncapped Bowlers & ARs,Active,Indian,India,IND,All-Rounder,False,47,40,61,0,50,40,₹40 Lakhs,5,manav_suthar.png,/assets/players/deck_7/manav_suthar.png
+IPL-170,R Sai Kishore,99,7,Uncapped Bowlers & ARs,Active,Indian,India,IND,Bowler,False,56,30,69,0,66,50,₹50 Lakhs,10,r_sai_kishore.png,/assets/players/deck_7/r_sai_kishore.png
+IPL-171,M Siddharth,52,7,Uncapped Bowlers & ARs,Active,Indian,India,IND,Bowler,False,46,12,58,0,55,40,₹40 Lakhs,5,m_siddharth.png,/assets/players/deck_7/m_siddharth.png
+IPL-172,Allah Ghazanfar,70,7,Uncapped Bowlers & ARs,Active,Overseas,Afghanistan,AFG,Bowler,False,57,20,71,0,68,50,₹50 Lakhs,10,allah_ghazanfar.png,/assets/players/deck_7/allah_ghazanfar.png
+IPL-173,Kwena Maphaka,81,7,Uncapped Bowlers & ARs,Active,Overseas,South Africa,RSA,Bowler,False,55,15,68,0,65,50,₹50 Lakhs,10,kwena_maphaka.png,/assets/players/deck_7/kwena_maphaka.png
+IPL-174,Xavier Bartlett,19,7,Uncapped Bowlers & ARs,Active,Overseas,Australia,AUS,Bowler,False,54,32,67,0,64,50,₹50 Lakhs,10,xavier_bartlett.png,/assets/players/deck_7/xavier_bartlett.png
+IPL-175,William O'Rourke,24,7,Uncapped Bowlers & ARs,Active,Overseas,New Zealand,NZ,Bowler,False,53,15,67,0,64,50,₹50 Lakhs,10,william_orourke.png,/assets/players/deck_7/william_orourke.png
+IPL-176,Spencer Johnson,45,7,Uncapped Bowlers & ARs,Active,Overseas,Australia,AUS,Bowler,False,54,18,66,0,63,50,₹50 Lakhs,10,spencer_johnson.png,/assets/players/deck_7/spencer_johnson.png
+IPL-177,Nandre Burger,71,7,Uncapped Bowlers & ARs,Active,Overseas,South Africa,RSA,Bowler,False,52,15,65,0,62,40,₹40 Lakhs,5,nandre_burger.png,/assets/players/deck_7/nandre_burger.png
+IPL-178,Cooper Connolly,16,7,Uncapped Bowlers & ARs,Active,Overseas,Australia,AUS,All-Rounder,False,50,45,62,0,53,40,₹40 Lakhs,5,cooper_connolly.png,/assets/players/deck_7/cooper_connolly.png
+IPL-179,Jafer Chohan,88,7,Uncapped Bowlers & ARs,Active,Overseas,England,ENG,Bowler,False,44,15,57,0,54,30,₹30 Lakhs,5,jafer_chohan.png,/assets/players/deck_7/jafer_chohan.png
+IPL-180,Ali Khan,20,7,Uncapped Bowlers & ARs,Active,Overseas,United States,USA,Bowler,False,48,15,60,0,57,40,₹40 Lakhs,5,ali_khan.png,/assets/players/deck_7/ali_khan.png

@@ -1,0 +1,17 @@
+{
+  "name": "auction-room",
+  "version": "2.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "start:mini": "node scripts/start-mini.js",
+    "test": "node --test test.js",
+    "test:all": "node --test",
+    "test:browser": "node scripts/browser_test.js",
+    "test:drills": "node scripts/drills.js",
+    "audit": "node scripts/audit.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

@@ -1,0 +1,1 @@
+{"name":"auction-room","version":"2.0.0","private":true,"scripts":{"start":"node server.js","start:mini":"PRESET=MINI node server.js","test":"node --test"},"engines":{"node":">=18"}}

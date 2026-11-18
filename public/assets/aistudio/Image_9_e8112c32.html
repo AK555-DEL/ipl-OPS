@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+
+<html class="dark h-full" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>IPL AUCTION OPS // LIVE TERMINAL - ARENA IDLE BROADCAST</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600;700;800&amp;family=Space+Grotesk:wght@500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "surface-container-low": "#1c192f",
+            "surface-container-lowest": "#0e0b21",
+            "tertiary": "#ffd6d8",
+            "outline": "#9d8f79",
+            "on-error-container": "#ffdad6",
+            "tertiary-fixed-dim": "#ffb2b7",
+            "error-container": "#93000a",
+            "on-primary-fixed": "#271900",
+            "on-primary-container": "#6b4b00",
+            "on-tertiary": "#67001b",
+            "primary-container": "#fdb813",
+            "surface-container-high": "#2b273e",
+            "tertiary-container": "#ffafb4",
+            "inverse-on-surface": "#312d45",
+            "on-secondary": "#003824",
+            "surface-container": "#201d33",
+            "on-secondary-fixed": "#002113",
+            "surface": "#141026",
+            "primary-fixed-dim": "#ffbb1e",
+            "on-primary-fixed-variant": "#5e4200",
+            "secondary-fixed": "#6ffbbe",
+            "on-background": "#e6defe",
+            "secondary-fixed-dim": "#4edea3",
+            "on-surface": "#e6defe",
+            "surface-dim": "#141026",
+            "on-primary": "#412d00",
+            "tertiary-fixed": "#ffdadb",
+            "surface-tint": "#ffbb1e",
+            "surface-bright": "#3a364e",
+            "outline-variant": "#504533",
+            "on-surface-variant": "#d5c4ac",
+            "inverse-surface": "#e6defe",
+            "on-secondary-fixed-variant": "#005236",
+            "inverse-primary": "#7c5800",
+            "secondary-container": "#00a572",
+            "background": "#141026",
+            "on-error": "#690005",
+            "on-secondary-container": "#00311f",
+            "surface-container-highest": "#36324a",
+            "error": "#ffb4ab",
+            "primary": "#ffdb9f",
+            "surface-variant": "#36324a",
+            "secondary": "#4edea3",
+            "on-tertiary-container": "#a50031",
+            "on-tertiary-fixed": "#40000d",
+            "on-tertiary-fixed-variant": "#92002a",
+            "primary-fixed": "#ffdea7"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "space-xl": "1.25rem",
+            "space-2xs": "0.125rem",
+            "margin-panel": "1rem",
+            "space-lg": "0.875rem",
+            "space-md": "0.625rem",
+            "margin": "0.75rem",
+            "gutter-md": "0.75rem",
+            "space-sm": "0.375rem",
+            "space-xs": "0.25rem",
+            "gutter": "0.5rem"
+          },
+          "fontFamily": {
+            "headline-lg": ["Space Grotesk"],
+            "body-md": ["Inter"],
+            "headline-xl": ["JetBrains Mono"],
+            "headline-sm": ["Space Grotesk"],
+            "body-sm": ["Inter"],
+            "label-mono-sm": ["JetBrains Mono"],
+            "label-hotkey": ["JetBrains Mono"],
+            "label-data": ["JetBrains Mono"],
+            "headline-md": ["Space Grotesk"],
+            "title-tabular": ["JetBrains Mono"]
+          },
+          "fontSize": {
+            "headline-lg": ["2rem", { "lineHeight": "2.25rem", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "body-md": ["0.875rem", { "lineHeight": "1.25rem", "fontWeight": "400" }],
+            "headline-xl": ["3.25rem", { "lineHeight": "3.5rem", "letterSpacing": "-0.05em", "fontWeight": "700" }],
+            "headline-sm": ["1.125rem", { "lineHeight": "1.5rem", "fontWeight": "600" }],
+            "body-sm": ["0.75rem", { "lineHeight": "1rem", "fontWeight": "400" }],
+            "label-mono-sm": ["0.6875rem", { "lineHeight": "0.875rem", "letterSpacing": "0.04em", "fontWeight": "500" }],
+            "label-hotkey": ["0.625rem", { "lineHeight": "0.75rem", "letterSpacing": "0.05em", "fontWeight": "700" }],
+            "label-data": ["0.8125rem", { "lineHeight": "1rem", "fontWeight": "500" }],
+            "headline-md": ["1.375rem", { "lineHeight": "1.75rem", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "title-tabular": ["1.25rem", { "lineHeight": "1.5rem", "letterSpacing": "-0.02em", "fontWeight": "600" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 1;
+    }
+    .amber-glow {
+      box-shadow: inset 0 0 16px rgba(253, 184, 19, 0.18), 0 0 12px rgba(253, 184, 19, 0.25);
+    }
+    .emerald-glow {
+      box-shadow: 0 0 8px rgba(78, 222, 163, 0.65);
+    }
+    .live-pulse {
+      animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    @keyframes pulse-ring {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.92); }
+    }
+    /* Fixed 16:9 Aspect lock for arena screens */
+    .arena-viewport {
+      width: 100vw;
+      height: 100vh;
+      max-width: 1920px;
+      max-height: 1080px;
+      overflow: hidden;
+      user-select: none;
+    }
+  </style>
+</head>
+<body class="bg-surface text-on-surface antialiased h-full flex items-center justify-center p-0 m-0 overflow-hidden font-body-md selection:bg-primary-container selection:text-on-primary-container">
+<!-- Main 16:9 Container (Stadium Video Board Standard 1920x1080 Viewport) -->
+<div class="arena-viewport flex flex-col bg-surface-dim border border-outline-variant border-opacity-40">
+<!-- TOP SHARED NAV / BROADCAST HEADER CLUSTER -->
+<header class="flex justify-between items-center w-full px-margin-panel py-space-xs border-b border-outline-variant bg-surface-container-lowest shrink-0">
+<!-- Brand & Stage Identifier -->
+<div class="flex items-center gap-space-md">
+<!-- Live Pip -->
+<div class="flex items-center gap-space-xs bg-surface-container px-space-sm py-space-2xs rounded border border-outline-variant">
+<span class="w-2.5 h-2.5 rounded-full bg-secondary emerald-glow live-pulse"></span>
+<span class="font-label-mono-sm text-label-mono-sm font-bold text-secondary uppercase tracking-wider">LIVE FEED</span>
+</div>
+<h1 class="font-headline-sm text-headline-sm uppercase tracking-wider text-primary">IPL AUCTION OPS // LIVE TERMINAL</h1>
+<span class="text-outline-variant">|</span>
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant font-medium">TATA IPL 2025 // JEDDAH ARENA</span>
+</div>
+<!-- Center Status: Stage / Countdown -->
+<div class="flex items-center gap-space-lg bg-surface-container-low px-space-lg py-space-2xs rounded border border-outline-variant">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary-container text-base">pause_circle</span>
+<span class="font-label-mono-sm text-label-mono-sm text-primary-container font-bold tracking-widest">ARENA IDLE // SET 08: FAST BOWLERS</span>
+</div>
+<div class="h-3 w-px bg-outline-variant"></div>
+<div class="flex items-center gap-space-xs">
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant">HAMMER RESUMES IN:</span>
+<span class="font-headline-sm text-headline-sm text-primary font-headline-xl tabular-nums font-bold tracking-tight" id="countdown">02:45</span>
+</div>
+</div>
+<!-- Navigation & Trailing Actions from System Anchors -->
+<div class="flex items-center gap-space-md">
+<nav class="flex items-center gap-space-md">
+<span class="text-primary-container border-b-2 border-primary-container font-label-mono-sm pb-1 font-bold">Stage</span>
+<span class="text-on-surface-variant font-label-mono-sm pb-1">Squads</span>
+<span class="text-on-surface-variant font-label-mono-sm pb-1">Team Stats</span>
+</nav>
+<div class="h-4 w-px bg-outline-variant"></div>
+<!-- System Icons & Outflow Metric -->
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-on-surface-variant text-lg">sensors</span>
+<span class="material-symbols-outlined text-secondary text-lg">wifi_tethering</span>
+<span class="material-symbols-outlined text-on-surface-variant text-lg">terminal</span>
+</div>
+<div class="bg-surface-container px-space-md py-space-2xs rounded border border-outline-variant flex items-center gap-space-xs">
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant">OUTFLOW:</span>
+<span class="font-title-tabular text-title-tabular text-primary-container font-bold">₹894.20 Cr</span>
+</div>
+</div>
+</header>
+<!-- Sub-Ribbon: Aggregate Auction Progress Metrics -->
+<div class="w-full bg-surface-container-low border-b border-outline-variant px-margin-panel py-space-2xs flex items-center justify-between shrink-0">
+<div class="flex items-center gap-space-xl">
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant uppercase tracking-widest font-semibold flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-sm text-primary">analytics</span>
+          TOTAL AUCTION PROGRESSION
+        </span>
+<div class="flex items-center gap-space-md font-label-data text-label-data">
+<span class="text-secondary font-bold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span> 142 SOLD
+          </span>
+<span class="text-outline-variant">•</span>
+<span class="text-tertiary-container font-bold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary-container"></span> 08 UNSOLD
+          </span>
+<span class="text-outline-variant">•</span>
+<span class="text-primary font-bold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span> 30 REMAINING
+          </span>
+</div>
+</div>
+<div class="flex items-center gap-space-lg">
+<div class="flex items-center gap-space-xs font-label-mono-sm text-label-mono-sm text-on-surface-variant">
+<span>RTM CARDS AVAILABLE:</span>
+<span class="text-primary-container font-bold">14 / 20</span>
+</div>
+<div class="h-3 w-px bg-outline-variant"></div>
+<div class="flex items-center gap-space-xs font-label-mono-sm text-label-mono-sm text-on-surface-variant">
+<span>ACTIVE ACCELERATOR:</span>
+<span class="text-secondary font-bold">SET 08 (OFFLINE SOON)</span>
+</div>
+</div>
+</div>
+<!-- MAIN BROADCAST ARENA VIEWPORT (2-Column Asymmetric Broadcast Layout) -->
+<main class="flex-1 grid grid-cols-12 gap-0 overflow-hidden bg-surface-lowest">
+<!-- ======================================================== -->
+<!-- LEFT 8 COLS: COMMANDING STADIUM NEXT-UP SHOWCASE -->
+<!-- ======================================================== -->
+<section class="col-span-8 flex flex-col border-r border-outline-variant bg-surface relative overflow-hidden p-space-md justify-between">
+<!-- Background Architectural Tech Decals -->
+<div class="absolute -right-20 -bottom-20 w-96 h-96 bg-primary-container opacity-5 blur-[120px] pointer-events-none rounded-full"></div>
+<div class="absolute left-8 top-12 opacity-10 pointer-events-none text-9xl font-headline-xl font-extrabold text-primary select-none tracking-tighter">
+          #088
+        </div>
+<!-- Upper Banner: Grand Lot Identifier -->
+<div class="flex items-center justify-between z-10">
+<div class="flex items-center gap-space-md">
+<div class="bg-primary-container text-on-primary-container font-headline-sm text-headline-sm font-bold px-space-lg py-space-xs rounded flex items-center gap-space-xs tracking-wider">
+<span class="material-symbols-outlined text-xl">gavel</span>
+              LOT #88
+            </div>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm font-bold text-primary tracking-wide">MARQUEE FAST BOWLER</span>
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant">SPECIALIST SET: INTERNATIONAL PACE SPEARHEAD</span>
+</div>
+</div>
+<div class="flex items-center gap-space-sm bg-surface-container-high px-space-md py-space-xs rounded border border-outline-variant">
+<span class="w-2 h-2 rounded-full bg-primary-container live-pulse"></span>
+<span class="font-label-mono-sm text-label-mono-sm text-primary font-bold tracking-wider">ON DECK: NEXT TO HAMMER</span>
+</div>
+</div>
+<!-- Center Player Showcase: Monolithic Card -->
+<div class="my-auto z-10 grid grid-cols-12 gap-space-lg items-center">
+<!-- Player Silhouette Container with Cinematic Amber Rim Aura -->
+<div class="col-span-5 relative flex items-center justify-center">
+<div class="w-full aspect-[4/5] rounded bg-surface-container-low border border-outline-variant relative overflow-hidden flex flex-col justify-end p-space-md amber-glow">
+<!-- Ambient Back-light -->
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-surface-container-low/40 to-transparent"></div>
+<!-- Player Visual Portrait Representation -->
+<img class="absolute inset-0 w-full h-full object-cover object-top mix-blend-luminosity opacity-85" data-alt="Cinematic high contrast broadcast studio photography of a muscular international fast bowler standing under intense moody arena floodlights, wearing a charcoal athletic training kit, aggressive ready stance, volumetric golden rim light against deep inky atmospheric smoke and stadium backdrop." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA6HM2iINepMwmQ9sC3pQ-uBKCBaQpCwHORu_9jp1smeVNNoeuFGPW5Ik1rnMsMi0Zg_MJV6L3MAqjH_S61CPEpgIZq_4NCqWtA0rfqhbYR3_2KI--7QqD8oOqFnA9gwJ0W7F5-5ZDw-IVLV3XzbTjncbc4_Kkbt9coO36dZcg-O-GwBN7GOaUVany2dCFPAmKKQu0dh3y33DuO7xmiZMYEdKtExyOqyrc6fEjSfcZDj2TCL1P1WMea62xO_niycbnztB42xKMSH5PI"/>
+<!-- Country & Player Crest Floating Tag -->
+<div class="relative z-10 flex items-center justify-between w-full bg-surface-container-lowest/90 backdrop-blur-md p-space-sm rounded border border-outline-variant">
+<div class="flex items-center gap-space-xs">
+<span class="font-label-mono-sm text-label-mono-sm font-bold text-on-surface">AUS</span>
+<span class="h-3 w-px bg-outline-variant"></span>
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant font-medium">AUSTRALIA</span>
+</div>
+<span class="font-label-mono-sm text-label-mono-sm font-bold text-primary-container bg-surface-container px-space-xs py-space-2xs rounded border border-outline-variant">
+                  CAPPED
+                </span>
+</div>
+</div>
+</div>
+<!-- Hero Telemetry & Long-Distance Data Deck -->
+<div class="col-span-7 flex flex-col justify-center space-y-space-md">
+<!-- Category Chips -->
+<div class="flex flex-wrap items-center gap-space-xs">
+<span class="bg-surface-container-high border border-outline-variant text-on-surface font-label-mono-sm text-label-mono-sm px-space-md py-space-2xs rounded font-bold uppercase tracking-wider">
+                LEFT-ARM FAST
+              </span>
+<span class="bg-surface-container-high border border-outline-variant text-secondary font-label-mono-sm text-label-mono-sm px-space-md py-space-2xs rounded font-bold uppercase tracking-wider flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">public</span> OVERSEAS QUOTA
+              </span>
+<span class="bg-surface-container-high border border-outline-variant text-primary font-label-mono-sm text-label-mono-sm px-space-md py-space-2xs rounded font-bold uppercase tracking-wider">
+                AGE 34 // RTM ELIGIBLE (KKR)
+              </span>
+</div>
+<!-- Monumental Player Name -->
+<div class="space-y-0">
+<h2 class="font-headline-lg text-[3rem] leading-none font-extrabold tracking-tight text-on-surface uppercase">
+                MITCHELL
+              </h2>
+<h2 class="font-headline-lg text-[3.8rem] leading-none font-extrabold tracking-tight text-primary-container uppercase drop-shadow-md">
+                STARC
+              </h2>
+</div>
+<!-- Base Price Gigantic Readout -->
+<div class="bg-surface-container-low border border-primary-container border-opacity-60 rounded p-space-md flex items-center justify-between amber-glow">
+<div>
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant font-bold uppercase tracking-widest block">RESERVE BASE PRICE</span>
+<span class="font-headline-xl text-headline-xl text-primary font-bold tracking-tight">₹ 2.00 <span class="text-2xl text-on-surface-variant font-headline-sm">Cr</span></span>
+</div>
+<div class="text-right flex flex-col items-end">
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant uppercase">INITIAL BID TIER</span>
+<span class="font-label-data text-label-data text-secondary font-bold bg-surface-container px-space-sm py-space-2xs rounded border border-outline-variant mt-1">
+                  + ₹ 20.00 L INCREMENT
+                </span>
+</div>
+</div>
+<!-- Crucial Bowling Specs Grid (Tailored for 15-meter viewing clarity) -->
+<div class="grid grid-cols-4 gap-space-sm">
+<div class="bg-surface-container-high p-space-sm rounded border border-outline-variant text-center">
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant block uppercase">T20 WKTS</span>
+<span class="font-headline-md text-headline-md font-bold text-on-surface font-title-tabular">348</span>
+<span class="text-[0.625rem] text-outline font-label-mono-sm block">142.4 SR</span>
+</div>
+<div class="bg-surface-container-high p-space-sm rounded border border-outline-variant text-center">
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant block uppercase">BOWLING AVG</span>
+<span class="font-headline-md text-headline-md font-bold text-secondary font-title-tabular">19.80</span>
+<span class="text-[0.625rem] text-secondary font-label-mono-sm block">TOP 2% T20</span>
+</div>
+<div class="bg-surface-container-high p-space-sm rounded border border-outline-variant text-center">
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant block uppercase">ECONOMY</span>
+<span class="font-headline-md text-headline-md font-bold text-on-surface font-title-tabular">7.42</span>
+<span class="text-[0.625rem] text-outline font-label-mono-sm block">DEATH: 8.86</span>
+</div>
+<div class="bg-surface-container-high p-space-sm rounded border border-outline-variant text-center">
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant block uppercase">IPL TITLES</span>
+<span class="font-headline-md text-headline-md font-bold text-primary font-title-tabular">2X</span>
+<span class="text-[0.625rem] text-primary font-label-mono-sm block">4 SEASONS</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Lower Section: Upcoming On-Deck Queue Ribbon -->
+<div class="z-10 bg-surface-container-lowest border border-outline-variant rounded p-space-sm mt-space-md">
+<div class="flex items-center justify-between mb-space-xs px-space-xs">
+<span class="font-label-mono-sm text-label-mono-sm text-primary font-bold uppercase tracking-wider flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-xs">queue</span> UPCOMING ON DECK (ACCELERATED QUEUE)
+            </span>
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant">EST. REMAINING SET TIME: ~18 MIN</span>
+</div>
+<div class="grid grid-cols-3 gap-space-sm">
+<!-- Queue 1 -->
+<div class="flex items-center justify-between bg-surface-container p-space-sm rounded border border-outline-variant">
+<div class="flex items-center gap-space-sm">
+<span class="font-headline-sm text-headline-sm text-on-surface-variant font-bold">#89</span>
+<div>
+<span class="font-label-data text-label-data font-bold text-on-surface block leading-tight">L. LIVINGSTONE</span>
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant">ENG • ALL-ROUND</span>
+</div>
+</div>
+<span class="font-label-mono-sm text-label-mono-sm font-bold text-primary-container bg-surface-container-high px-space-xs py-space-2xs rounded">
+                ₹2.00 Cr
+              </span>
+</div>
+<!-- Queue 2 -->
+<div class="flex items-center justify-between bg-surface-container p-space-sm rounded border border-outline-variant">
+<div class="flex items-center gap-space-sm">
+<span class="font-headline-sm text-headline-sm text-on-surface-variant font-bold">#90</span>
+<div>
+<span class="font-label-data text-label-data font-bold text-on-surface block leading-tight">G. MAXWELL</span>
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant">AUS • ALL-ROUND</span>
+</div>
+</div>
+<span class="font-label-mono-sm text-label-mono-sm font-bold text-primary-container bg-surface-container-high px-space-xs py-space-2xs rounded">
+                ₹2.00 Cr
+              </span>
+</div>
+<!-- Queue 3 -->
+<div class="flex items-center justify-between bg-surface-container p-space-sm rounded border border-outline-variant">
+<div class="flex items-center gap-space-sm">
+<span class="font-headline-sm text-headline-sm text-on-surface-variant font-bold">#91</span>
+<div>
+<span class="font-label-data text-label-data font-bold text-on-surface block leading-tight">M. SHAMI</span>
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant">IND • FAST BOWL</span>
+</div>
+</div>
+<span class="font-label-mono-sm text-label-mono-sm font-bold text-primary-container bg-surface-container-high px-space-xs py-space-2xs rounded">
+                ₹2.00 Cr
+              </span>
+</div>
+</div>
+</div>
+</section>
+<!-- ======================================================== -->
+<!-- RIGHT 4 COLS: 10-TEAM PURSE & SQUAD TELEMETRY LEDGER -->
+<!-- ======================================================== -->
+<section class="col-span-4 flex flex-col bg-surface-container-lowest justify-between h-full">
+<!-- Ledger Header -->
+<div class="p-space-sm border-b border-outline-variant bg-surface-container-low flex items-center justify-between shrink-0">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-base">account_balance_wallet</span>
+<span class="font-label-mono-sm text-label-mono-sm font-bold text-primary uppercase tracking-wider">FRANCHISE PURSE &amp; SQUAD LEDGER</span>
+</div>
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant">RANKED: PURSE REMAINING</span>
+</div>
+<!-- 10 Franchises Monolithic Stack (High-density, strictly read-only) -->
+<div class="flex-1 flex flex-col justify-between py-space-2xs px-space-sm overflow-hidden gap-space-2xs">
+<!-- Team 1: PBKS -->
+<div class="flex items-center justify-between bg-surface-container px-space-sm py-space-xs rounded border border-outline-variant relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1.5 bg-[#ED1B24]"></div>
+<div class="flex items-center gap-space-sm pl-space-xs">
+<div class="w-8 h-8 rounded bg-surface-container-high border border-outline-variant flex items-center justify-center font-headline-sm text-headline-sm font-bold text-on-surface">
+                PB
+              </div>
+<div>
+<span class="font-label-data text-label-data font-bold text-on-surface block">PUNJAB KINGS</span>
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant">17/25 SLOTS • 5/8 OS</span>
+</div>
+</div>
+<div class="flex items-center gap-space-md">
+<span class="font-label-mono-sm text-[0.625rem] text-secondary font-bold bg-surface-container-lowest px-space-xs py-space-2xs rounded border border-outline-variant">
+                HIGH PURSE
+              </span>
+<span class="font-title-tabular text-title-tabular font-bold text-primary font-headline-xl tabular-nums">
+                ₹38.40 <span class="text-xs font-normal text-on-surface-variant">Cr</span>
+</span>
+</div>
+</div>
+<!-- Team 2: RCB -->
+<div class="flex items-center justify-between bg-surface-container px-space-sm py-space-xs rounded border border-outline-variant relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1.5 bg-[#E03A3E]"></div>
+<div class="flex items-center gap-space-sm pl-space-xs">
+<div class="w-8 h-8 rounded bg-surface-container-high border border-outline-variant flex items-center justify-center font-headline-sm text-headline-sm font-bold text-on-surface">
+                RC
+              </div>
+<div>
+<span class="font-label-data text-label-data font-bold text-on-surface block">ROYAL CHALLENGERS</span>
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant">18/25 SLOTS • 6/8 OS</span>
+</div>
+</div>
+<div class="flex items-center gap-space-md">
+<span class="font-label-mono-sm text-[0.625rem] text-secondary font-bold bg-surface-container-lowest px-space-xs py-space-2xs rounded border border-outline-variant">
+                OPTIMAL
+              </span>
+<span class="font-title-tabular text-title-tabular font-bold text-primary font-headline-xl tabular-nums">
+                ₹32.10 <span class="text-xs font-normal text-on-surface-variant">Cr</span>
+</span>
+</div>
+</div>
+<!-- Team 3: GT -->
+<div class="flex items-center justify-between bg-surface-container px-space-sm py-space-xs rounded border border-outline-variant relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1.5 bg-[#1B2133] border-r border-[#E5B869]"></div>
+<div class="flex items-center gap-space-sm pl-space-xs">
+<div class="w-8 h-8 rounded bg-surface-container-high border border-outline-variant flex items-center justify-center font-headline-sm text-headline-sm font-bold text-on-surface">
+                GT
+              </div>
+<div>
+<span class="font-label-data text-label-data font-bold text-on-surface block">GUJARAT TITANS</span>
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant">19/25 SLOTS • 6/8 OS</span>
+</div>
+</div>
+<div class="flex items-center gap-space-md">
+<span class="font-label-mono-sm text-[0.625rem] text-secondary font-bold bg-surface-container-lowest px-space-xs py-space-2xs rounded border border-outline-variant">
+                OPTIMAL
+              </span>
+<span class="font-title-tabular text-title-tabular font-bold text-primary font-headline-xl tabular-nums">
+                ₹29.80 <span class="text-xs font-normal text-on-surface-variant">Cr</span>
+</span>
+</div>
+</div>
+<!-- Team 4: DC -->
+<div class="flex items-center justify-between bg-surface-container px-space-sm py-space-xs rounded border border-outline-variant relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1.5 bg-[#004C97]"></div>
+<div class="flex items-center gap-space-sm pl-space-xs">
+<div class="w-8 h-8 rounded bg-surface-container-high border border-outline-variant flex items-center justify-center font-headline-sm text-headline-sm font-bold text-on-surface">
+                DC
+              </div>
+<div>
+<span class="font-label-data text-label-data font-bold text-on-surface block">DELHI CAPITALS</span>
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant">20/25 SLOTS • 7/8 OS</span>
+</div>
+</div>
+<div class="flex items-center gap-space-md">
+<span class="font-label-mono-sm text-[0.625rem] text-secondary font-bold bg-surface-container-lowest px-space-xs py-space-2xs rounded border border-outline-variant">
+                OPTIMAL
+              </span>
+<span class="font-title-tabular text-title-tabular font-bold text-primary font-headline-xl tabular-nums">
+                ₹27.50 <span class="text-xs font-normal text-on-surface-variant">Cr</span>
+</span>
+</div>
+</div>
+<!-- Team 5: LSG -->
+<div class="flex items-center justify-between bg-surface-container px-space-sm py-space-xs rounded border border-outline-variant relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1.5 bg-[#0057E7]"></div>
+<div class="flex items-center gap-space-sm pl-space-xs">
+<div class="w-8 h-8 rounded bg-surface-container-high border border-outline-variant flex items-center justify-center font-headline-sm text-headline-sm font-bold text-on-surface">
+                LS
+              </div>
+<div>
+<span class="font-label-data text-label-data font-bold text-on-surface block">LUCKNOW SUPER GIANTS</span>
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant">19/25 SLOTS • 5/8 OS</span>
+</div>
+</div>
+<div class="flex items-center gap-space-md">
+<span class="font-label-mono-sm text-[0.625rem] text-secondary font-bold bg-surface-container-lowest px-space-xs py-space-2xs rounded border border-outline-variant">
+                OPTIMAL
+              </span>
+<span class="font-title-tabular text-title-tabular font-bold text-primary font-headline-xl tabular-nums">
+                ₹24.00 <span class="text-xs font-normal text-on-surface-variant">Cr</span>
+</span>
+</div>
+</div>
+<!-- Team 6: CSK -->
+<div class="flex items-center justify-between bg-surface-container px-space-sm py-space-xs rounded border border-outline-variant relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1.5 bg-[#FDB813]"></div>
+<div class="flex items-center gap-space-sm pl-space-xs">
+<div class="w-8 h-8 rounded bg-surface-container-high border border-outline-variant flex items-center justify-center font-headline-sm text-headline-sm font-bold text-primary-container">
+                CS
+              </div>
+<div>
+<span class="font-label-data text-label-data font-bold text-on-surface block">CHENNAI SUPER KINGS</span>
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant">21/25 SLOTS • 7/8 OS</span>
+</div>
+</div>
+<div class="flex items-center gap-space-md">
+<span class="font-label-mono-sm text-[0.625rem] text-primary-container font-bold bg-surface-container-lowest px-space-xs py-space-2xs rounded border border-outline-variant">
+                CAUTION
+              </span>
+<span class="font-title-tabular text-title-tabular font-bold text-primary font-headline-xl tabular-nums">
+                ₹21.40 <span class="text-xs font-normal text-on-surface-variant">Cr</span>
+</span>
+</div>
+</div>
+<!-- Team 7: SRH -->
+<div class="flex items-center justify-between bg-surface-container px-space-sm py-space-xs rounded border border-outline-variant relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1.5 bg-[#FF822A]"></div>
+<div class="flex items-center gap-space-sm pl-space-xs">
+<div class="w-8 h-8 rounded bg-surface-container-high border border-outline-variant flex items-center justify-center font-headline-sm text-headline-sm font-bold text-on-surface">
+                SR
+              </div>
+<div>
+<span class="font-label-data text-label-data font-bold text-on-surface block">SUNRISERS HYDERABAD</span>
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant">21/25 SLOTS • 6/8 OS</span>
+</div>
+</div>
+<div class="flex items-center gap-space-md">
+<span class="font-label-mono-sm text-[0.625rem] text-primary-container font-bold bg-surface-container-lowest px-space-xs py-space-2xs rounded border border-outline-variant">
+                CAUTION
+              </span>
+<span class="font-title-tabular text-title-tabular font-bold text-primary font-headline-xl tabular-nums">
+                ₹18.90 <span class="text-xs font-normal text-on-surface-variant">Cr</span>
+</span>
+</div>
+</div>
+<!-- Team 8: KKR -->
+<div class="flex items-center justify-between bg-surface-container px-space-sm py-space-xs rounded border border-outline-variant relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1.5 bg-[#3A225D]"></div>
+<div class="flex items-center gap-space-sm pl-space-xs">
+<div class="w-8 h-8 rounded bg-surface-container-high border border-outline-variant flex items-center justify-center font-headline-sm text-headline-sm font-bold text-on-surface">
+                KK
+              </div>
+<div>
+<span class="font-label-data text-label-data font-bold text-on-surface block">KOLKATA KNIGHT RIDERS</span>
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant">22/25 SLOTS • 7/8 OS</span>
+</div>
+</div>
+<div class="flex items-center gap-space-md">
+<span class="font-label-mono-sm text-[0.625rem] text-tertiary-container font-bold bg-surface-container-lowest px-space-xs py-space-2xs rounded border border-outline-variant">
+                RESTRICTED
+              </span>
+<span class="font-title-tabular text-title-tabular font-bold text-primary font-headline-xl tabular-nums">
+                ₹14.20 <span class="text-xs font-normal text-on-surface-variant">Cr</span>
+</span>
+</div>
+</div>
+<!-- Team 9: MI -->
+<div class="flex items-center justify-between bg-surface-container px-space-sm py-space-xs rounded border border-outline-variant relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1.5 bg-[#004B8D]"></div>
+<div class="flex items-center gap-space-sm pl-space-xs">
+<div class="w-8 h-8 rounded bg-surface-container-high border border-outline-variant flex items-center justify-center font-headline-sm text-headline-sm font-bold text-on-surface">
+                MI
+              </div>
+<div>
+<span class="font-label-data text-label-data font-bold text-on-surface block">MUMBAI INDIANS</span>
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant">23/25 SLOTS • 8/8 OS (MAX)</span>
+</div>
+</div>
+<div class="flex items-center gap-space-md">
+<span class="font-label-mono-sm text-[0.625rem] text-tertiary-container font-bold bg-surface-container-lowest px-space-xs py-space-2xs rounded border border-outline-variant">
+                RESTRICTED
+              </span>
+<span class="font-title-tabular text-title-tabular font-bold text-primary font-headline-xl tabular-nums">
+                ₹11.60 <span class="text-xs font-normal text-on-surface-variant">Cr</span>
+</span>
+</div>
+</div>
+<!-- Team 10: RR -->
+<div class="flex items-center justify-between bg-surface-container px-space-sm py-space-xs rounded border border-outline-variant relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1.5 bg-[#EA1A85]"></div>
+<div class="flex items-center gap-space-sm pl-space-xs">
+<div class="w-8 h-8 rounded bg-surface-container-high border border-outline-variant flex items-center justify-center font-headline-sm text-headline-sm font-bold text-on-surface">
+                RR
+              </div>
+<div>
+<span class="font-label-data text-label-data font-bold text-on-surface block">RAJASTHAN ROYALS</span>
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant">24/25 SLOTS • 8/8 OS (MAX)</span>
+</div>
+</div>
+<div class="flex items-center gap-space-md">
+<span class="font-label-mono-sm text-[0.625rem] text-error font-bold bg-surface-container-lowest px-space-xs py-space-2xs rounded border border-outline-variant">
+                CRITICAL
+              </span>
+<span class="font-title-tabular text-title-tabular font-bold text-primary font-headline-xl tabular-nums">
+                ₹08.10 <span class="text-xs font-normal text-on-surface-variant">Cr</span>
+</span>
+</div>
+</div>
+</div>
+<!-- Right Rail Footer Telemetry -->
+<div class="p-space-xs bg-surface-container-low border-t border-outline-variant flex items-center justify-between text-on-surface-variant font-label-mono-sm text-label-mono-sm shrink-0">
+<span>FRANCHISE CAP: ₹120.00 Cr</span>
+<span class="text-secondary font-bold">10/10 TEAMS COMPLIANT</span>
+</div>
+</section>
+</main>
+<!-- BOTTOM INSTRUMENT DOCK & GLOBAL TELEMETRY FOOTER -->
+<footer class="h-10 bg-surface-container-lowest border-t border-outline-variant px-margin-panel flex items-center justify-between shrink-0">
+<!-- Left: Status & Engine Health -->
+<div class="flex items-center gap-space-lg">
+<div class="flex items-center gap-space-xs">
+<span class="w-2 h-2 rounded-full bg-secondary emerald-glow"></span>
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface font-semibold">ENGINE HEALTH: NOMINAL</span>
+</div>
+<div class="h-3 w-px bg-outline-variant"></div>
+<div class="flex items-center gap-space-xs font-label-mono-sm text-label-mono-sm text-on-surface-variant">
+<span>BROADCAST DELAY:</span>
+<span class="text-secondary font-bold">12ms STADIUM SYNC</span>
+</div>
+<div class="h-3 w-px bg-outline-variant"></div>
+<div class="flex items-center gap-space-xs font-label-mono-sm text-label-mono-sm text-on-surface-variant">
+<span>PACKET INTEGRITY:</span>
+<span class="text-primary font-bold">100.0% (AES-256)</span>
+</div>
+</div>
+<!-- Center: Stadium Frequency Ticker -->
+<div class="flex items-center gap-space-xs font-label-mono-sm text-label-mono-sm text-on-surface-variant tracking-wider">
+<span class="material-symbols-outlined text-sm text-primary">broadcast_on_home</span>
+<span>ARENA FREQUENCY: 5.820 GHz CH-14 • JEDDAH MEGA-ARRAY FEED 01</span>
+</div>
+<!-- Right: Watermark & Operator Mode -->
+<div class="flex items-center gap-space-md">
+<span class="font-label-mono-sm text-label-mono-sm text-outline font-bold">STRICTLY READ-ONLY DISPLAY</span>
+<div class="bg-surface-container px-space-xs py-space-2xs rounded border border-outline-variant flex items-center gap-space-xs">
+<span class="font-label-mono-sm text-label-mono-sm text-primary font-bold">BCCI // TATA IPL 2025</span>
+</div>
+</div>
+</footer>
+</div>
+<!-- Ambient Clock and Countdown Script for Arena Realism -->
+<script>
+    (function() {
+      let secondsRemaining = 165; // 2 min 45 sec
+      const countdownEl = document.getElementById('countdown');
+      
+      setInterval(() => {
+        if (secondsRemaining > 0) {
+          secondsRemaining--;
+          const mins = Math.floor(secondsRemaining / 60);
+          const secs = secondsRemaining % 60;
+          if (countdownEl) {
+            countdownEl.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+          }
+        }
+      }, 1000);
+    })();
+  </script>
+</body></html>

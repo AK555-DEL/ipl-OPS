@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>IPL Auction Operator Console - Squads &amp; Team Stats</title>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts: Space Grotesk, JetBrains Mono, Inter -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "tertiary-container": "#ffafb4",
+            "error": "#ffb4ab",
+            "on-secondary": "#003824",
+            "secondary-fixed": "#6ffbbe",
+            "on-surface": "#e6defe",
+            "on-primary-fixed-variant": "#5e4200",
+            "error-container": "#93000a",
+            "on-secondary-fixed-variant": "#005236",
+            "tertiary": "#ffd6d8",
+            "primary": "#ffdb9f",
+            "primary-container": "#fdb813",
+            "background": "#141026",
+            "outline-variant": "#504533",
+            "surface-dim": "#141026",
+            "on-error-container": "#ffdad6",
+            "secondary-container": "#00a572",
+            "inverse-on-surface": "#312d45",
+            "inverse-surface": "#e6defe",
+            "on-tertiary": "#67001b",
+            "secondary": "#4edea3",
+            "surface-container-highest": "#36324a",
+            "tertiary-fixed": "#ffdadb",
+            "on-background": "#e6defe",
+            "surface-container-high": "#2b273e",
+            "outline": "#9d8f79",
+            "on-tertiary-fixed-variant": "#92002a",
+            "surface-container-lowest": "#0e0b21",
+            "surface-bright": "#3a364e",
+            "on-secondary-fixed": "#002113",
+            "primary-fixed": "#ffdea7",
+            "on-primary-fixed": "#271900",
+            "on-surface-variant": "#d5c4ac",
+            "secondary-fixed-dim": "#4edea3",
+            "on-error": "#690005",
+            "inverse-primary": "#7c5800",
+            "on-primary": "#412d00",
+            "surface-container": "#201d33",
+            "surface-container-low": "#1c192f",
+            "on-primary-container": "#6b4b00",
+            "on-tertiary-fixed": "#40000d",
+            "on-tertiary-container": "#a50031",
+            "primary-fixed-dim": "#ffbb1e",
+            "on-secondary-container": "#00311f",
+            "surface": "#141026",
+            "surface-tint": "#ffbb1e",
+            "tertiary-fixed-dim": "#ffb2b7",
+            "surface-variant": "#36324a"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "gutter-md": "0.75rem",
+            "margin-panel": "1rem",
+            "space-md": "0.625rem",
+            "space-xs": "0.25rem",
+            "space-xl": "1.25rem",
+            "gutter": "0.5rem",
+            "space-lg": "0.875rem",
+            "margin": "0.75rem",
+            "space-sm": "0.375rem",
+            "space-2xs": "0.125rem"
+          },
+          "fontFamily": {
+            "headline-xl": ["JetBrains Mono"],
+            "headline-sm": ["Space Grotesk"],
+            "label-data": ["JetBrains Mono"],
+            "headline-md": ["Space Grotesk"],
+            "label-mono-sm": ["JetBrains Mono"],
+            "headline-lg": ["Space Grotesk"],
+            "title-tabular": ["JetBrains Mono"],
+            "label-hotkey": ["JetBrains Mono"],
+            "body-md": ["Inter"],
+            "body-sm": ["Inter"]
+          },
+          "fontSize": {
+            "headline-xl": ["3.25rem", { "lineHeight": "3.5rem", "letterSpacing": "-0.05em", "fontWeight": "700" }],
+            "headline-sm": ["1.125rem", { "lineHeight": "1.5rem", "fontWeight": "600" }],
+            "label-data": ["0.8125rem", { "lineHeight": "1rem", "fontWeight": "500" }],
+            "headline-md": ["1.375rem", { "lineHeight": "1.75rem", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "label-mono-sm": ["0.6875rem", { "lineHeight": "0.875rem", "letterSpacing": "0.04em", "fontWeight": "500" }],
+            "headline-lg": ["2rem", { "lineHeight": "2.25rem", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "title-tabular": ["1.25rem", { "lineHeight": "1.5rem", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+            "label-hotkey": ["0.625rem", { "lineHeight": "0.75rem", "letterSpacing": "0.05em", "fontWeight": "700" }],
+            "body-md": ["0.875rem", { "lineHeight": "1.25rem", "fontWeight": "400" }],
+            "body-sm": ["0.75rem", { "lineHeight": "1rem", "fontWeight": "400" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    /* Custom Scrollbar for dense operations */
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0e0b21;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #504533;
+      border-radius: 2px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #fdb813;
+    }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+    }
+    .glow-gold {
+      box-shadow: inset 0 0 10px rgba(253, 184, 19, 0.15), 0 0 8px rgba(253, 184, 19, 0.2);
+    }
+    .glow-emerald {
+      box-shadow: 0 0 6px #10b981;
+    }
+  </style>
+</head>
+<body class="bg-background text-on-surface flex flex-col h-screen w-screen overflow-hidden select-none">
+<!-- TOP APP BAR (Shared Components JSON Anchor) -->
+<header class="flex justify-between items-center w-full px-margin-panel py-space-xs border-b border-outline-variant bg-surface-container-lowest shrink-0 z-30">
+<div class="flex items-center gap-space-lg">
+<!-- Brand Logo / Product Name from JSON -->
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary-container text-[20px]" data-icon="terminal">terminal</span>
+<span class="font-headline-sm text-headline-sm uppercase tracking-wider text-primary">IPL AUCTION OPS // LIVE TERMINAL</span>
+</div>
+<!-- Live Telemetry Pips -->
+<div class="flex items-center gap-space-xs bg-surface-container-high px-space-sm py-space-2xs border border-outline-variant rounded">
+<span class="w-2 h-2 rounded-full bg-secondary glow-emerald animate-pulse"></span>
+<span class="font-label-mono-sm text-label-mono-sm text-secondary">WS: 12ms CONNECTED</span>
+<span class="text-outline mx-space-2xs">|</span>
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant">HAMMER SYNC: MASTER_01</span>
+</div>
+<!-- Navigation Links from JSON: Stage, Squads, Team Stats (Squads is Active) -->
+<nav class="flex items-center gap-space-md ml-space-sm">
+<a class="text-on-surface-variant font-label-mono-sm pb-1 hover:text-on-surface transition-colors duration-150 active:scale-95 flex items-center gap-space-xs" href="#">
+          Stage
+        </a>
+<a class="text-primary-container border-b-2 border-primary-container font-label-mono-sm pb-1 flex items-center gap-space-xs font-semibold" href="#">
+          Squads
+        </a>
+<a class="text-on-surface-variant font-label-mono-sm pb-1 hover:text-on-surface transition-colors duration-150 active:scale-95 flex items-center gap-space-xs" href="#">
+          Team Stats
+        </a>
+</nav>
+</div>
+<!-- Search Bar (on_left per JSON specification) & Trailing Actions -->
+<div class="flex items-center gap-space-md">
+<!-- Search Input -->
+<div class="relative w-64">
+<span class="material-symbols-outlined absolute left-2 top-1.5 text-on-surface-variant text-[16px]" data-icon="search">search</span>
+<input class="w-full bg-surface-container-low border border-outline-variant rounded px-space-md py-space-2xs pl-7 text-on-surface font-label-mono-sm text-label-mono-sm focus:outline-none focus:border-primary-container placeholder:text-outline-variant" placeholder="FILTER PLAYERS / SETS (Ctrl+F)" type="text"/>
+</div>
+<!-- Quick Action Buttons -->
+<div class="flex items-center gap-space-xs">
+<button class="px-space-sm py-space-2xs border border-outline-variant bg-surface-container hover:bg-surface-container-high text-on-surface font-label-mono-sm text-label-mono-sm rounded flex items-center gap-space-xs transition-colors">
+<span class="material-symbols-outlined text-[14px]" data-icon="file_download">file_download</span>
+          Export CSV
+        </button>
+<!-- Undo (Ctrl+Z) from JSON trailing_secondary_action -->
+<button class="px-space-sm py-space-2xs border border-outline-variant bg-surface-container hover:bg-surface-container-high text-on-surface-variant font-label-mono-sm text-label-mono-sm rounded flex items-center gap-space-xs transition-colors">
+<span class="material-symbols-outlined text-[14px]" data-icon="undo">undo</span>
+          Undo (Ctrl+Z)
+        </button>
+<!-- Clear Bids from JSON trailing_primary_action -->
+<button class="px-space-sm py-space-2xs bg-error-container hover:bg-on-tertiary-container text-error font-label-mono-sm text-label-mono-sm rounded border border-error/40 flex items-center gap-space-xs transition-colors">
+<span class="material-symbols-outlined text-[14px]" data-icon="restart_alt">restart_alt</span>
+          Clear Bids
+        </button>
+</div>
+<!-- Trailing Icon Actions from JSON: sensors, wifi_tethering, terminal -->
+<div class="flex items-center gap-space-xs border-l border-outline-variant pl-space-sm text-on-surface-variant">
+<button class="p-space-2xs hover:text-on-surface transition-colors" title="Sensors">
+<span class="material-symbols-outlined text-[18px]" data-icon="sensors">sensors</span>
+</button>
+<button class="p-space-2xs hover:text-on-surface transition-colors" title="Wifi Tethering">
+<span class="material-symbols-outlined text-[18px]" data-icon="wifi_tethering">wifi_tethering</span>
+</button>
+<button class="p-space-2xs hover:text-on-surface transition-colors" title="Terminal Logs">
+<span class="material-symbols-outlined text-[18px]" data-icon="terminal">terminal</span>
+</button>
+</div>
+<!-- Active Operator Chip -->
+<div class="flex items-center gap-space-xs bg-primary/10 border border-primary/30 px-space-sm py-space-2xs rounded">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+<span class="font-label-mono-sm text-label-mono-sm text-primary uppercase">OP: CHAIR ACTIVE</span>
+</div>
+</div>
+</header>
+<!-- FRANCHISE SELECTOR BAR (10 IPL Teams Pill Strip) -->
+<section class="w-full bg-surface-container-low border-b border-outline-variant px-margin-panel py-space-2xs flex items-center gap-space-xs overflow-x-auto shrink-0">
+<div class="flex items-center gap-space-2xs text-outline font-label-mono-sm text-label-mono-sm mr-space-xs">
+<span class="material-symbols-outlined text-[14px]" data-icon="hub">hub</span>
+      FRANCHISE:
+    </div>
+<!-- 10 Franchise Tabs -->
+<!-- KKR -->
+<button class="flex items-center gap-space-xs px-space-sm py-space-2xs rounded bg-surface-container border border-outline-variant hover:border-outline text-on-surface-variant transition-colors group">
+<span class="w-2 h-2 rounded-full bg-[#3A225D]"></span>
+<span class="font-label-mono-sm text-label-mono-sm font-semibold text-on-surface">KKR</span>
+<span class="font-label-mono-sm text-label-mono-sm text-outline">₹18.25 Cr | 19/25</span>
+</button>
+<!-- CSK -->
+<button class="flex items-center gap-space-xs px-space-sm py-space-2xs rounded bg-surface-container border border-outline-variant hover:border-outline text-on-surface-variant transition-colors group">
+<span class="w-2 h-2 rounded-full bg-[#FDB913]"></span>
+<span class="font-label-mono-sm text-label-mono-sm font-semibold text-on-surface">CSK</span>
+<span class="font-label-mono-sm text-label-mono-sm text-outline">₹14.80 Cr | 21/25</span>
+</button>
+<!-- SRH -->
+<button class="flex items-center gap-space-xs px-space-sm py-space-2xs rounded bg-surface-container border border-outline-variant hover:border-outline text-on-surface-variant transition-colors group">
+<span class="w-2 h-2 rounded-full bg-[#F26522]"></span>
+<span class="font-label-mono-sm text-label-mono-sm font-semibold text-on-surface">SRH</span>
+<span class="font-label-mono-sm text-label-mono-sm text-outline">₹32.40 Cr | 17/25</span>
+</button>
+<!-- LSG -->
+<button class="flex items-center gap-space-xs px-space-sm py-space-2xs rounded bg-surface-container border border-outline-variant hover:border-outline text-on-surface-variant transition-colors group">
+<span class="w-2 h-2 rounded-full bg-[#0057E7]"></span>
+<span class="font-label-mono-sm text-label-mono-sm font-semibold text-on-surface">LSG</span>
+<span class="font-label-mono-sm text-label-mono-sm text-outline">₹12.10 Cr | 20/25</span>
+</button>
+<!-- DC -->
+<button class="flex items-center gap-space-xs px-space-sm py-space-2xs rounded bg-surface-container border border-outline-variant hover:border-outline text-on-surface-variant transition-colors group">
+<span class="w-2 h-2 rounded-full bg-[#004C93]"></span>
+<span class="font-label-mono-sm text-label-mono-sm font-semibold text-on-surface">DC</span>
+<span class="font-label-mono-sm text-label-mono-sm text-outline">₹28.90 Cr | 16/25</span>
+</button>
+<!-- RCB -->
+<button class="flex items-center gap-space-xs px-space-sm py-space-2xs rounded bg-surface-container border border-outline-variant hover:border-outline text-on-surface-variant transition-colors group">
+<span class="w-2 h-2 rounded-full bg-[#D71920]"></span>
+<span class="font-label-mono-sm text-label-mono-sm font-semibold text-on-surface">RCB</span>
+<span class="font-label-mono-sm text-label-mono-sm text-outline">₹09.50 Cr | 22/25</span>
+</button>
+<!-- RR -->
+<button class="flex items-center gap-space-xs px-space-sm py-space-2xs rounded bg-surface-container border border-outline-variant hover:border-outline text-on-surface-variant transition-colors group">
+<span class="w-2 h-2 rounded-full bg-[#EA1A85]"></span>
+<span class="font-label-mono-sm text-label-mono-sm font-semibold text-on-surface">RR</span>
+<span class="font-label-mono-sm text-label-mono-sm text-outline">₹17.30 Cr | 19/25</span>
+</button>
+<!-- GT -->
+<button class="flex items-center gap-space-xs px-space-sm py-space-2xs rounded bg-surface-container border border-outline-variant hover:border-outline text-on-surface-variant transition-colors group">
+<span class="w-2 h-2 rounded-full bg-[#1B2133]"></span>
+<span class="font-label-mono-sm text-label-mono-sm font-semibold text-on-surface">GT</span>
+<span class="font-label-mono-sm text-label-mono-sm text-outline">₹15.75 Cr | 18/25</span>
+</button>
+<!-- PBKS -->
+<button class="flex items-center gap-space-xs px-space-sm py-space-2xs rounded bg-surface-container border border-outline-variant hover:border-outline text-on-surface-variant transition-colors group">
+<span class="w-2 h-2 rounded-full bg-[#DD1F2D]"></span>
+<span class="font-label-mono-sm text-label-mono-sm font-semibold text-on-surface">PBKS</span>
+<span class="font-label-mono-sm text-label-mono-sm text-outline">₹38.60 Cr | 15/25</span>
+</button>
+<!-- MI (CURRENTLY ACTIVE / HIGHLIGHTED) -->
+<button class="flex items-center gap-space-xs px-space-sm py-space-2xs rounded bg-surface-container-high border-2 border-primary-container text-primary-container glow-gold shrink-0">
+<span class="w-2 h-2 rounded-full bg-[#004BA0] border border-primary-container"></span>
+<span class="font-label-mono-sm text-label-mono-sm font-bold text-on-surface">MI (ACTIVE)</span>
+<span class="font-label-mono-sm text-label-mono-sm text-primary-container font-semibold">₹21.50 Cr</span>
+<span class="bg-primary-container/20 text-primary-container px-space-2xs py-0.5 rounded font-label-hotkey text-label-hotkey">18/25</span>
+</button>
+</section>
+<!-- MAIN OPERATOR DECK (Split Modular Grid) -->
+<main class="flex-1 grid grid-cols-12 overflow-hidden bg-background divide-x divide-outline-variant">
+<!-- PANEL A: ACTIVE SQUAD ROSTER TABLE (Selected: Mumbai Indians) - 7 cols -->
+<section class="col-span-7 flex flex-col h-full overflow-hidden bg-surface-container-lowest">
+<!-- Panel Header & Summary Strip -->
+<div class="px-space-md py-space-sm bg-surface-container-low border-b border-outline-variant shrink-0 flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<div class="w-7 h-7 rounded bg-[#004BA0] flex items-center justify-center font-headline-sm text-headline-sm font-bold text-white border border-primary-container/40">
+              MI
+            </div>
+<div>
+<div class="flex items-center gap-space-xs">
+<h2 class="font-headline-md text-headline-md font-bold text-on-surface">Mumbai Indians</h2>
+<span class="bg-surface-container-highest text-on-surface-variant font-label-mono-sm text-label-mono-sm px-space-xs py-space-2xs rounded border border-outline-variant">SQUAD DESK</span>
+</div>
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant">Slot Quota: 18/25 filled • Overseas: 6/8 registered</span>
+</div>
+</div>
+<!-- Quick Squad Metrics Strip -->
+<div class="flex items-center gap-space-sm bg-surface-container px-space-md py-space-xs rounded border border-outline-variant">
+<div class="text-right">
+<div class="font-label-mono-sm text-label-mono-sm text-outline">TOTAL SPENT</div>
+<div class="font-label-data text-label-data font-bold text-on-surface">₹78.50 Cr</div>
+</div>
+<div class="h-6 w-px bg-outline-variant"></div>
+<div class="text-right">
+<div class="font-label-mono-sm text-label-mono-sm text-outline">PURSE BALANCE</div>
+<div class="font-label-data text-label-data font-bold text-primary-container">₹21.50 Cr</div>
+</div>
+<div class="h-6 w-px bg-outline-variant"></div>
+<div class="text-right">
+<div class="font-label-mono-sm text-label-mono-sm text-outline">MAX BID CEILING</div>
+<div class="font-label-data text-label-data font-bold text-secondary">₹17.50 Cr</div>
+</div>
+</div>
+</div>
+<!-- Release Confirmation Warning Banner (Interactive affordance) -->
+<div class="flex items-center justify-between px-space-sm py-space-2xs bg-surface-container-high border border-outline-variant rounded">
+<div class="flex items-center gap-space-xs text-on-surface-variant font-label-mono-sm text-label-mono-sm">
+<span class="material-symbols-outlined text-primary-container text-[16px]" data-icon="info">info</span>
+<span>Roster Actions: Releasing a player returns base auction fee to purse and reopens quota lot.</span>
+</div>
+<span class="font-label-hotkey text-label-hotkey text-outline">RTM RESERVE: 1 REMAINING</span>
+</div>
+</div>
+<!-- Squad Roster Table (Scrollable Instrument View) -->
+<div class="flex-1 overflow-y-auto">
+<table class="w-full text-left border-collapse">
+<thead class="sticky top-0 bg-surface-container border-b border-outline-variant z-10">
+<tr class="font-label-mono-sm text-label-mono-sm text-outline tracking-wider">
+<th class="py-space-xs px-space-sm">LOT</th>
+<th class="py-space-xs px-space-sm">PLAYER</th>
+<th class="py-space-xs px-space-sm">ROLE</th>
+<th class="py-space-xs px-space-sm">TIER / ORIGIN</th>
+<th class="py-space-xs px-space-sm text-right">PRICE (₹ CR)</th>
+<th class="py-space-xs px-space-sm text-center">ACTION</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant font-label-data text-label-data">
+<!-- Player 1: Jasprit Bumrah -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="py-space-xs px-space-sm text-outline font-label-mono-sm">RET-01</td>
+<td class="py-space-xs px-space-sm">
+<div class="flex items-center gap-space-xs">
+<div class="w-6 h-6 rounded bg-surface-container-high border border-outline-variant flex items-center justify-center font-bold text-on-surface text-[10px]">JB</div>
+<div>
+<span class="font-bold text-on-surface block">Jasprit Bumrah</span>
+<span class="text-secondary font-label-mono-sm text-[10px] block">Retained • Leader Pick</span>
+</div>
+</div>
+</td>
+<td class="py-space-xs px-space-sm text-on-surface-variant">Fast Bowler (RF)</td>
+<td class="py-space-xs px-space-sm">
+<span class="px-1.5 py-0.5 bg-surface-container-high border border-outline-variant rounded text-[10px] font-label-mono-sm text-primary">CAPPED IND</span>
+</td>
+<td class="py-space-xs px-space-sm text-right font-bold text-primary-container">₹18.00 Cr</td>
+<td class="py-space-xs px-space-sm text-center">
+<button class="px-space-xs py-space-2xs border border-outline-variant rounded text-outline font-label-mono-sm text-[10px] hover:border-error hover:text-error hover:bg-error-container/20 transition-colors">
+                  RELEASE
+                </button>
+</td>
+</tr>
+<!-- Player 2: Suryakumar Yadav -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="py-space-xs px-space-sm text-outline font-label-mono-sm">RET-02</td>
+<td class="py-space-xs px-space-sm">
+<div class="flex items-center gap-space-xs">
+<div class="w-6 h-6 rounded bg-surface-container-high border border-outline-variant flex items-center justify-center font-bold text-on-surface text-[10px]">SK</div>
+<div>
+<span class="font-bold text-on-surface block">Suryakumar Yadav</span>
+<span class="text-secondary font-label-mono-sm text-[10px] block">Retained</span>
+</div>
+</div>
+</td>
+<td class="py-space-xs px-space-sm text-on-surface-variant">Top-Order Batter</td>
+<td class="py-space-xs px-space-sm">
+<span class="px-1.5 py-0.5 bg-surface-container-high border border-outline-variant rounded text-[10px] font-label-mono-sm text-primary">CAPPED IND</span>
+</td>
+<td class="py-space-xs px-space-sm text-right font-bold text-primary-container">₹16.35 Cr</td>
+<td class="py-space-xs px-space-sm text-center">
+<button class="px-space-xs py-space-2xs border border-outline-variant rounded text-outline font-label-mono-sm text-[10px] hover:border-error hover:text-error hover:bg-error-container/20 transition-colors">
+                  RELEASE
+                </button>
+</td>
+</tr>
+<!-- Player 3: Hardik Pandya -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="py-space-xs px-space-sm text-outline font-label-mono-sm">RET-03</td>
+<td class="py-space-xs px-space-sm">
+<div class="flex items-center gap-space-xs">
+<div class="w-6 h-6 rounded bg-surface-container-high border border-outline-variant flex items-center justify-center font-bold text-on-surface text-[10px]">HP</div>
+<div>
+<span class="font-bold text-on-surface block">Hardik Pandya (C)</span>
+<span class="text-secondary font-label-mono-sm text-[10px] block">Retained • Captain</span>
+</div>
+</div>
+</td>
+<td class="py-space-xs px-space-sm text-on-surface-variant">Batting All-Rounder</td>
+<td class="py-space-xs px-space-sm">
+<span class="px-1.5 py-0.5 bg-surface-container-high border border-outline-variant rounded text-[10px] font-label-mono-sm text-primary">CAPPED IND</span>
+</td>
+<td class="py-space-xs px-space-sm text-right font-bold text-primary-container">₹16.35 Cr</td>
+<td class="py-space-xs px-space-sm text-center">
+<button class="px-space-xs py-space-2xs border border-outline-variant rounded text-outline font-label-mono-sm text-[10px] hover:border-error hover:text-error hover:bg-error-container/20 transition-colors">
+                  RELEASE
+                </button>
+</td>
+</tr>
+<!-- Player 4: Rohit Sharma -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="py-space-xs px-space-sm text-outline font-label-mono-sm">RET-04</td>
+<td class="py-space-xs px-space-sm">
+<div class="flex items-center gap-space-xs">
+<div class="w-6 h-6 rounded bg-surface-container-high border border-outline-variant flex items-center justify-center font-bold text-on-surface text-[10px]">RS</div>
+<div>
+<span class="font-bold text-on-surface block">Rohit Sharma</span>
+<span class="text-secondary font-label-mono-sm text-[10px] block">Retained</span>
+</div>
+</div>
+</td>
+<td class="py-space-xs px-space-sm text-on-surface-variant">Opening Batter</td>
+<td class="py-space-xs px-space-sm">
+<span class="px-1.5 py-0.5 bg-surface-container-high border border-outline-variant rounded text-[10px] font-label-mono-sm text-primary">CAPPED IND</span>
+</td>
+<td class="py-space-xs px-space-sm text-right font-bold text-primary-container">₹16.30 Cr</td>
+<td class="py-space-xs px-space-sm text-center">
+<button class="px-space-xs py-space-2xs border border-outline-variant rounded text-outline font-label-mono-sm text-[10px] hover:border-error hover:text-error hover:bg-error-container/20 transition-colors">
+                  RELEASE
+                </button>
+</td>
+</tr>
+<!-- Player 5: Gerald Coetzee (Overseas) -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="py-space-xs px-space-sm text-outline font-label-mono-sm">LOT-14</td>
+<td class="py-space-xs px-space-sm">
+<div class="flex items-center gap-space-xs">
+<div class="w-6 h-6 rounded bg-surface-container-high border border-outline-variant flex items-center justify-center font-bold text-on-surface text-[10px]">GC</div>
+<div>
+<span class="font-bold text-on-surface block">Gerald Coetzee</span>
+<span class="text-on-surface-variant font-label-mono-sm text-[10px] block">Round 2 • Set FA-2</span>
+</div>
+</div>
+</td>
+<td class="py-space-xs px-space-sm text-on-surface-variant">Fast Bowler (RF)</td>
+<td class="py-space-xs px-space-sm">
+<div class="flex items-center gap-1">
+<span class="px-1.5 py-0.5 bg-secondary-container/20 border border-secondary-container rounded text-[10px] font-label-mono-sm text-secondary">✈️ OVERSEAS (SA)</span>
+</div>
+</td>
+<td class="py-space-xs px-space-sm text-right font-bold text-on-surface">₹5.00 Cr</td>
+<td class="py-space-xs px-space-sm text-center">
+<button class="px-space-xs py-space-2xs border border-outline-variant rounded text-outline font-label-mono-sm text-[10px] hover:border-error hover:text-error hover:bg-error-container/20 transition-colors">
+                  RELEASE
+                </button>
+</td>
+</tr>
+<!-- Player 6: Tim David (Overseas) -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="py-space-xs px-space-sm text-outline font-label-mono-sm">RET-05</td>
+<td class="py-space-xs px-space-sm">
+<div class="flex items-center gap-space-xs">
+<div class="w-6 h-6 rounded bg-surface-container-high border border-outline-variant flex items-center justify-center font-bold text-on-surface text-[10px]">TD</div>
+<div>
+<span class="font-bold text-on-surface block">Tim David</span>
+<span class="text-secondary font-label-mono-sm text-[10px] block">Retained</span>
+</div>
+</div>
+</td>
+<td class="py-space-xs px-space-sm text-on-surface-variant">Finisher / All-Rounder</td>
+<td class="py-space-xs px-space-sm">
+<span class="px-1.5 py-0.5 bg-secondary-container/20 border border-secondary-container rounded text-[10px] font-label-mono-sm text-secondary">✈️ OVERSEAS (AUS)</span>
+</td>
+<td class="py-space-xs px-space-sm text-right font-bold text-on-surface">₹8.25 Cr</td>
+<td class="py-space-xs px-space-sm text-center">
+<button class="px-space-xs py-space-2xs border border-outline-variant rounded text-outline font-label-mono-sm text-[10px] hover:border-error hover:text-error hover:bg-error-container/20 transition-colors">
+                  RELEASE
+                </button>
+</td>
+</tr>
+<!-- Player 7: Tilak Varma -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="py-space-xs px-space-sm text-outline font-label-mono-sm">RET-06</td>
+<td class="py-space-xs px-space-sm">
+<div class="flex items-center gap-space-xs">
+<div class="w-6 h-6 rounded bg-surface-container-high border border-outline-variant flex items-center justify-center font-bold text-on-surface text-[10px]">TV</div>
+<div>
+<span class="font-bold text-on-surface block">Tilak Varma</span>
+<span class="text-secondary font-label-mono-sm text-[10px] block">Retained</span>
+</div>
+</div>
+</td>
+<td class="py-space-xs px-space-sm text-on-surface-variant">Middle-Order Batter</td>
+<td class="py-space-xs px-space-sm">
+<span class="px-1.5 py-0.5 bg-surface-container-high border border-outline-variant rounded text-[10px] font-label-mono-sm text-primary">CAPPED IND</span>
+</td>
+<td class="py-space-xs px-space-sm text-right font-bold text-on-surface">₹8.00 Cr</td>
+<td class="py-space-xs px-space-sm text-center">
+<button class="px-space-xs py-space-2xs border border-outline-variant rounded text-outline font-label-mono-sm text-[10px] hover:border-error hover:text-error hover:bg-error-container/20 transition-colors">
+                  RELEASE
+                </button>
+</td>
+</tr>
+<!-- Player 8: Trent Boult (Overseas) -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="py-space-xs px-space-sm text-outline font-label-mono-sm">LOT-08</td>
+<td class="py-space-xs px-space-sm">
+<div class="flex items-center gap-space-xs">
+<div class="w-6 h-6 rounded bg-surface-container-high border border-outline-variant flex items-center justify-center font-bold text-on-surface text-[10px]">TB</div>
+<div>
+<span class="font-bold text-on-surface block">Trent Boult</span>
+<span class="text-primary-container font-label-mono-sm text-[10px] block">Round 1 • Marquee M1</span>
+</div>
+</div>
+</td>
+<td class="py-space-xs px-space-sm text-on-surface-variant">Fast Bowler (LF)</td>
+<td class="py-space-xs px-space-sm">
+<span class="px-1.5 py-0.5 bg-secondary-container/20 border border-secondary-container rounded text-[10px] font-label-mono-sm text-secondary">✈️ OVERSEAS (NZ)</span>
+</td>
+<td class="py-space-xs px-space-sm text-right font-bold text-on-surface">₹12.50 Cr</td>
+<td class="py-space-xs px-space-sm text-center">
+<button class="px-space-xs py-space-2xs border border-outline-variant rounded text-outline font-label-mono-sm text-[10px] hover:border-error hover:text-error hover:bg-error-container/20 transition-colors">
+                  RELEASE
+                </button>
+</td>
+</tr>
+<!-- Player 9: Naman Dhir -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="py-space-xs px-space-sm text-outline font-label-mono-sm">LOT-42</td>
+<td class="py-space-xs px-space-sm">
+<div class="flex items-center gap-space-xs">
+<div class="w-6 h-6 rounded bg-surface-container-high border border-outline-variant flex items-center justify-center font-bold text-on-surface text-[10px]">ND</div>
+<div>
+<span class="font-bold text-on-surface block">Naman Dhir</span>
+<span class="text-outline font-label-mono-sm text-[10px] block">Uncapped Pool UCB</span>
+</div>
+</div>
+</td>
+<td class="py-space-xs px-space-sm text-on-surface-variant">All-Rounder (RHB/OS)</td>
+<td class="py-space-xs px-space-sm">
+<span class="px-1.5 py-0.5 bg-surface-container-high border border-outline-variant rounded text-[10px] font-label-mono-sm text-on-surface-variant">UNCAPPED IND</span>
+</td>
+<td class="py-space-xs px-space-sm text-right font-bold text-on-surface">₹5.25 Cr</td>
+<td class="py-space-xs px-space-sm text-center">
+<button class="px-space-xs py-space-2xs border border-outline-variant rounded text-outline font-label-mono-sm text-[10px] hover:border-error hover:text-error hover:bg-error-container/20 transition-colors">
+                  RELEASE
+                </button>
+</td>
+</tr>
+<!-- Player 10: Nuwan Thushara (Overseas) -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="py-space-xs px-space-sm text-outline font-label-mono-sm">LOT-55</td>
+<td class="py-space-xs px-space-sm">
+<div class="flex items-center gap-space-xs">
+<div class="w-6 h-6 rounded bg-surface-container-high border border-outline-variant flex items-center justify-center font-bold text-on-surface text-[10px]">NT</div>
+<div>
+<span class="font-bold text-on-surface block">Nuwan Thushara</span>
+<span class="text-outline font-label-mono-sm text-[10px] block">Round 3 • Fast Bowlers</span>
+</div>
+</div>
+</td>
+<td class="py-space-xs px-space-sm text-on-surface-variant">Pace Slinger (RF)</td>
+<td class="py-space-xs px-space-sm">
+<span class="px-1.5 py-0.5 bg-secondary-container/20 border border-secondary-container rounded text-[10px] font-label-mono-sm text-secondary">✈️ OVERSEAS (SL)</span>
+</td>
+<td class="py-space-xs px-space-sm text-right font-bold text-on-surface">₹4.80 Cr</td>
+<td class="py-space-xs px-space-sm text-center">
+<button class="px-space-xs py-space-2xs border border-outline-variant rounded text-outline font-label-mono-sm text-[10px] hover:border-error hover:text-error hover:bg-error-container/20 transition-colors">
+                  RELEASE
+                </button>
+</td>
+</tr>
+<!-- Player 11: Piyush Chawla -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="py-space-xs px-space-sm text-outline font-label-mono-sm">LOT-68</td>
+<td class="py-space-xs px-space-sm">
+<div class="flex items-center gap-space-xs">
+<div class="w-6 h-6 rounded bg-surface-container-high border border-outline-variant flex items-center justify-center font-bold text-on-surface text-[10px]">PC</div>
+<div>
+<span class="font-bold text-on-surface block">Piyush Chawla</span>
+<span class="text-outline font-label-mono-sm text-[10px] block">Spin Pool SP-1</span>
+</div>
+</div>
+</td>
+<td class="py-space-xs px-space-sm text-on-surface-variant">Leg-Spin Bowler</td>
+<td class="py-space-xs px-space-sm">
+<span class="px-1.5 py-0.5 bg-surface-container-high border border-outline-variant rounded text-[10px] font-label-mono-sm text-primary">CAPPED IND</span>
+</td>
+<td class="py-space-xs px-space-sm text-right font-bold text-on-surface">₹0.50 Cr</td>
+<td class="py-space-xs px-space-sm text-center">
+<button class="px-space-xs py-space-2xs border border-outline-variant rounded text-outline font-label-mono-sm text-[10px] hover:border-error hover:text-error hover:bg-error-container/20 transition-colors">
+                  RELEASE
+                </button>
+</td>
+</tr>
+<!-- Player 12: Anshul Kamboj -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="py-space-xs px-space-sm text-outline font-label-mono-sm">LOT-89</td>
+<td class="py-space-xs px-space-sm">
+<div class="flex items-center gap-space-xs">
+<div class="w-6 h-6 rounded bg-surface-container-high border border-outline-variant flex items-center justify-center font-bold text-on-surface text-[10px]">AK</div>
+<div>
+<span class="font-bold text-on-surface block">Anshul Kamboj</span>
+<span class="text-outline font-label-mono-sm text-[10px] block">Uncapped Pace</span>
+</div>
+</div>
+</td>
+<td class="py-space-xs px-space-sm text-on-surface-variant">Medium-Pacer</td>
+<td class="py-space-xs px-space-sm">
+<span class="px-1.5 py-0.5 bg-surface-container-high border border-outline-variant rounded text-[10px] font-label-mono-sm text-on-surface-variant">UNCAPPED IND</span>
+</td>
+<td class="py-space-xs px-space-sm text-right font-bold text-on-surface">₹0.20 Cr</td>
+<td class="py-space-xs px-space-sm text-center">
+<button class="px-space-xs py-space-2xs border border-outline-variant rounded text-outline font-label-mono-sm text-[10px] hover:border-error hover:text-error hover:bg-error-container/20 transition-colors">
+                  RELEASE
+                </button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Release Modal / Banner Notification Trigger (Preview Mode) -->
+<div class="p-space-xs bg-surface-container border-t border-outline-variant flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="w-2 h-2 rounded-full bg-primary-container"></span>
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant">Pending Release Buffer: None selected</span>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="text-outline font-label-hotkey text-label-hotkey">[Del] Quick Release Focused Lot</span>
+</div>
+</div>
+</section>
+<!-- PANEL B: COMPREHENSIVE FRANCHISE PURSE & FEASIBILITY TABLE - 5 cols -->
+<section class="col-span-5 flex flex-col h-full overflow-hidden bg-surface-container-lowest">
+<!-- Panel Header & Filter Strip -->
+<div class="px-space-md py-space-sm bg-surface-container-low border-b border-outline-variant shrink-0 flex items-center justify-between">
+<div>
+<div class="flex items-center gap-space-xs">
+<h2 class="font-headline-sm text-headline-sm font-bold text-on-surface">Purse &amp; Feasibility Radar</h2>
+<span class="bg-secondary-container/20 text-secondary border border-secondary/30 px-space-xs py-space-2xs rounded font-label-mono-sm text-[10px]">LIVE RANKINGS</span>
+</div>
+<p class="font-label-mono-sm text-label-mono-sm text-outline">Real-time purse utilization &amp; solvency audit</p>
+</div>
+<div class="flex items-center gap-space-xs">
+<button class="px-space-xs py-space-2xs bg-surface-container border border-outline-variant rounded text-on-surface font-label-mono-sm text-label-mono-sm flex items-center gap-space-2xs hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-[14px]" data-icon="tune">tune</span>
+            SIMULATE BIDS
+          </button>
+</div>
+</div>
+<!-- Feasibility Leaderboard Table -->
+<div class="flex-1 overflow-y-auto">
+<table class="w-full text-left border-collapse">
+<thead class="sticky top-0 bg-surface-container border-b border-outline-variant z-10 font-label-mono-sm text-label-mono-sm text-outline">
+<tr>
+<th class="py-space-xs px-space-sm"># FRANCHISE</th>
+<th class="py-space-xs px-space-sm text-right">PURSE LEFT</th>
+<th class="py-space-xs px-space-sm text-center">SLOTS</th>
+<th class="py-space-xs px-space-sm text-center">O/S</th>
+<th class="py-space-xs px-space-sm text-right">MIN RESERVE</th>
+<th class="py-space-xs px-space-sm text-center">SOLVENCY STATUS</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant font-label-data text-label-data">
+<!-- 1. PBKS -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-space-xs px-space-sm">
+<div class="flex items-center gap-space-xs">
+<span class="font-label-mono-sm text-outline w-3">1</span>
+<span class="w-2 h-2 rounded-full bg-[#DD1F2D]"></span>
+<span class="font-bold text-on-surface">PBKS</span>
+</div>
+</td>
+<td class="py-space-xs px-space-sm text-right">
+<span class="font-bold text-secondary text-title-tabular">₹38.60 Cr</span>
+<div class="w-16 h-1 bg-surface-container-highest rounded ml-auto mt-0.5 overflow-hidden">
+<div class="h-full bg-secondary" style="width: 32%"></div>
+</div>
+</td>
+<td class="py-space-xs px-space-sm text-center font-label-mono-sm text-outline">15/25</td>
+<td class="py-space-xs px-space-sm text-center font-label-mono-sm text-on-surface">4/8</td>
+<td class="py-space-xs px-space-sm text-right font-label-mono-sm text-outline">₹2.00 Cr</td>
+<td class="py-space-xs px-space-sm text-center">
+<span class="px-1.5 py-0.5 rounded bg-secondary-container/20 border border-secondary text-secondary font-label-mono-sm text-[10px] font-semibold">
+                  HIGH LIQUIDITY
+                </span>
+</td>
+</tr>
+<!-- 2. SRH -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-space-xs px-space-sm">
+<div class="flex items-center gap-space-xs">
+<span class="font-label-mono-sm text-outline w-3">2</span>
+<span class="w-2 h-2 rounded-full bg-[#F26522]"></span>
+<span class="font-bold text-on-surface">SRH</span>
+</div>
+</td>
+<td class="py-space-xs px-space-sm text-right">
+<span class="font-bold text-secondary text-title-tabular">₹32.40 Cr</span>
+<div class="w-16 h-1 bg-surface-container-highest rounded ml-auto mt-0.5 overflow-hidden">
+<div class="h-full bg-secondary" style="width: 27%"></div>
+</div>
+</td>
+<td class="py-space-xs px-space-sm text-center font-label-mono-sm text-outline">17/25</td>
+<td class="py-space-xs px-space-sm text-center font-label-mono-sm text-on-surface">5/8</td>
+<td class="py-space-xs px-space-sm text-right font-label-mono-sm text-outline">₹1.60 Cr</td>
+<td class="py-space-xs px-space-sm text-center">
+<span class="px-1.5 py-0.5 rounded bg-secondary-container/20 border border-secondary text-secondary font-label-mono-sm text-[10px] font-semibold">
+                  HIGH LIQUIDITY
+                </span>
+</td>
+</tr>
+<!-- 3. DC -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-space-xs px-space-sm">
+<div class="flex items-center gap-space-xs">
+<span class="font-label-mono-sm text-outline w-3">3</span>
+<span class="w-2 h-2 rounded-full bg-[#004C93]"></span>
+<span class="font-bold text-on-surface">DC</span>
+</div>
+</td>
+<td class="py-space-xs px-space-sm text-right">
+<span class="font-bold text-primary-container text-title-tabular">₹28.90 Cr</span>
+<div class="w-16 h-1 bg-surface-container-highest rounded ml-auto mt-0.5 overflow-hidden">
+<div class="h-full bg-primary-container" style="width: 24%"></div>
+</div>
+</td>
+<td class="py-space-xs px-space-sm text-center font-label-mono-sm text-outline">16/25</td>
+<td class="py-space-xs px-space-sm text-center font-label-mono-sm text-on-surface">4/8</td>
+<td class="py-space-xs px-space-sm text-right font-label-mono-sm text-outline">₹1.80 Cr</td>
+<td class="py-space-xs px-space-sm text-center">
+<span class="px-1.5 py-0.5 rounded bg-primary/20 border border-primary text-primary font-label-mono-sm text-[10px] font-semibold">
+                  OPTIMAL
+                </span>
+</td>
+</tr>
+<!-- 4. MI (Highlighted in list) -->
+<tr class="bg-primary-container/10 border-l-2 border-primary-container hover:bg-primary-container/15 transition-colors">
+<td class="py-space-xs px-space-sm">
+<div class="flex items-center gap-space-xs">
+<span class="font-label-mono-sm text-primary-container font-bold w-3">4</span>
+<span class="w-2 h-2 rounded-full bg-[#004BA0]"></span>
+<span class="font-bold text-primary-container">MI</span>
+</div>
+</td>
+<td class="py-space-xs px-space-sm text-right">
+<span class="font-bold text-primary-container text-title-tabular">₹21.50 Cr</span>
+<div class="w-16 h-1 bg-surface-container-highest rounded ml-auto mt-0.5 overflow-hidden">
+<div class="h-full bg-primary-container" style="width: 18%"></div>
+</div>
+</td>
+<td class="py-space-xs px-space-sm text-center font-label-mono-sm text-on-surface font-bold">18/25</td>
+<td class="py-space-xs px-space-sm text-center font-label-mono-sm text-primary-container font-bold">6/8</td>
+<td class="py-space-xs px-space-sm text-right font-label-mono-sm text-outline">₹1.40 Cr</td>
+<td class="py-space-xs px-space-sm text-center">
+<span class="px-1.5 py-0.5 rounded bg-primary/20 border border-primary text-primary font-label-mono-sm text-[10px] font-semibold">
+                  OPTIMAL
+                </span>
+</td>
+</tr>
+<!-- 5. KKR -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-space-xs px-space-sm">
+<div class="flex items-center gap-space-xs">
+<span class="font-label-mono-sm text-outline w-3">5</span>
+<span class="w-2 h-2 rounded-full bg-[#3A225D]"></span>
+<span class="font-bold text-on-surface">KKR</span>
+</div>
+</td>
+<td class="py-space-xs px-space-sm text-right">
+<span class="font-bold text-on-surface text-title-tabular">₹18.25 Cr</span>
+<div class="w-16 h-1 bg-surface-container-highest rounded ml-auto mt-0.5 overflow-hidden">
+<div class="h-full bg-on-surface-variant" style="width: 15%"></div>
+</div>
+</td>
+<td class="py-space-xs px-space-sm text-center font-label-mono-sm text-outline">19/25</td>
+<td class="py-space-xs px-space-sm text-center font-label-mono-sm text-on-surface">5/8</td>
+<td class="py-space-xs px-space-sm text-right font-label-mono-sm text-outline">₹1.20 Cr</td>
+<td class="py-space-xs px-space-sm text-center">
+<span class="px-1.5 py-0.5 rounded bg-surface-container-high border border-outline-variant text-on-surface-variant font-label-mono-sm text-[10px]">
+                  STABLE
+                </span>
+</td>
+</tr>
+<!-- 6. RR -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-space-xs px-space-sm">
+<div class="flex items-center gap-space-xs">
+<span class="font-label-mono-sm text-outline w-3">6</span>
+<span class="w-2 h-2 rounded-full bg-[#EA1A85]"></span>
+<span class="font-bold text-on-surface">RR</span>
+</div>
+</td>
+<td class="py-space-xs px-space-sm text-right">
+<span class="font-bold text-on-surface text-title-tabular">₹17.30 Cr</span>
+<div class="w-16 h-1 bg-surface-container-highest rounded ml-auto mt-0.5 overflow-hidden">
+<div class="h-full bg-on-surface-variant" style="width: 14%"></div>
+</div>
+</td>
+<td class="py-space-xs px-space-sm text-center font-label-mono-sm text-outline">19/25</td>
+<td class="py-space-xs px-space-sm text-center font-label-mono-sm text-on-surface">6/8</td>
+<td class="py-space-xs px-space-sm text-right font-label-mono-sm text-outline">₹1.20 Cr</td>
+<td class="py-space-xs px-space-sm text-center">
+<span class="px-1.5 py-0.5 rounded bg-surface-container-high border border-outline-variant text-on-surface-variant font-label-mono-sm text-[10px]">
+                  STABLE
+                </span>
+</td>
+</tr>
+<!-- 7. GT -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-space-xs px-space-sm">
+<div class="flex items-center gap-space-xs">
+<span class="font-label-mono-sm text-outline w-3">7</span>
+<span class="w-2 h-2 rounded-full bg-[#1B2133]"></span>
+<span class="font-bold text-on-surface">GT</span>
+</div>
+</td>
+<td class="py-space-xs px-space-sm text-right">
+<span class="font-bold text-on-surface text-title-tabular">₹15.75 Cr</span>
+<div class="w-16 h-1 bg-surface-container-highest rounded ml-auto mt-0.5 overflow-hidden">
+<div class="h-full bg-on-surface-variant" style="width: 13%"></div>
+</div>
+</td>
+<td class="py-space-xs px-space-sm text-center font-label-mono-sm text-outline">18/25</td>
+<td class="py-space-xs px-space-sm text-center font-label-mono-sm text-on-surface">5/8</td>
+<td class="py-space-xs px-space-sm text-right font-label-mono-sm text-outline">₹1.40 Cr</td>
+<td class="py-space-xs px-space-sm text-center">
+<span class="px-1.5 py-0.5 rounded bg-surface-container-high border border-outline-variant text-on-surface-variant font-label-mono-sm text-[10px]">
+                  STABLE
+                </span>
+</td>
+</tr>
+<!-- 8. CSK -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-space-xs px-space-sm">
+<div class="flex items-center gap-space-xs">
+<span class="font-label-mono-sm text-outline w-3">8</span>
+<span class="w-2 h-2 rounded-full bg-[#FDB913]"></span>
+<span class="font-bold text-on-surface">CSK</span>
+</div>
+</td>
+<td class="py-space-xs px-space-sm text-right">
+<span class="font-bold text-outline text-title-tabular">₹14.80 Cr</span>
+<div class="w-16 h-1 bg-surface-container-highest rounded ml-auto mt-0.5 overflow-hidden">
+<div class="h-full bg-outline" style="width: 12%"></div>
+</div>
+</td>
+<td class="py-space-xs px-space-sm text-center font-label-mono-sm text-outline">21/25</td>
+<td class="py-space-xs px-space-sm text-center font-label-mono-sm text-on-surface">7/8</td>
+<td class="py-space-xs px-space-sm text-right font-label-mono-sm text-outline">₹0.80 Cr</td>
+<td class="py-space-xs px-space-sm text-center">
+<span class="px-1.5 py-0.5 rounded bg-surface-container border border-outline-variant text-outline font-label-mono-sm text-[10px]">
+                  RESTRICTED
+                </span>
+</td>
+</tr>
+<!-- 9. LSG -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-space-xs px-space-sm">
+<div class="flex items-center gap-space-xs">
+<span class="font-label-mono-sm text-outline w-3">9</span>
+<span class="w-2 h-2 rounded-full bg-[#0057E7]"></span>
+<span class="font-bold text-on-surface">LSG</span>
+</div>
+</td>
+<td class="py-space-xs px-space-sm text-right">
+<span class="font-bold text-outline text-title-tabular">₹12.10 Cr</span>
+<div class="w-16 h-1 bg-surface-container-highest rounded ml-auto mt-0.5 overflow-hidden">
+<div class="h-full bg-outline" style="width: 10%"></div>
+</div>
+</td>
+<td class="py-space-xs px-space-sm text-center font-label-mono-sm text-outline">20/25</td>
+<td class="py-space-xs px-space-sm text-center font-label-mono-sm text-on-surface">6/8</td>
+<td class="py-space-xs px-space-sm text-right font-label-mono-sm text-outline">₹1.00 Cr</td>
+<td class="py-space-xs px-space-sm text-center">
+<span class="px-1.5 py-0.5 rounded bg-surface-container border border-outline-variant text-outline font-label-mono-sm text-[10px]">
+                  RESTRICTED
+                </span>
+</td>
+</tr>
+<!-- 10. RCB -->
+<tr class="bg-error-container/10 border-l border-error/50 hover:bg-error-container/20 transition-colors">
+<td class="py-space-xs px-space-sm">
+<div class="flex items-center gap-space-xs">
+<span class="font-label-mono-sm text-error font-bold w-3">10</span>
+<span class="w-2 h-2 rounded-full bg-[#D71920]"></span>
+<span class="font-bold text-error">RCB</span>
+</div>
+</td>
+<td class="py-space-xs px-space-sm text-right">
+<span class="font-bold text-error text-title-tabular">₹09.50 Cr</span>
+<div class="w-16 h-1 bg-surface-container-highest rounded ml-auto mt-0.5 overflow-hidden">
+<div class="h-full bg-error" style="width: 7%"></div>
+</div>
+</td>
+<td class="py-space-xs px-space-sm text-center font-label-mono-sm text-error font-bold">22/25</td>
+<td class="py-space-xs px-space-sm text-center font-label-mono-sm text-error">7/8</td>
+<td class="py-space-xs px-space-sm text-right font-label-mono-sm text-error">₹0.60 Cr</td>
+<td class="py-space-xs px-space-sm text-center">
+<span class="px-1.5 py-0.5 rounded bg-error-container/40 border border-error/50 text-error font-label-mono-sm text-[10px] font-bold">
+                  CRITICAL (&lt;₹10Cr)
+                </span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Tactical Analytics Mini Deck -->
+<div class="p-space-sm bg-surface-container-low border-t border-outline-variant shrink-0 grid grid-cols-2 gap-space-xs">
+<div class="p-space-xs bg-surface-container rounded border border-outline-variant">
+<div class="font-label-mono-sm text-[10px] text-outline">AVG SQUAD UTILIZATION</div>
+<div class="font-headline-sm text-headline-sm font-bold text-on-surface">76.4%</div>
+<div class="w-full h-1 bg-surface-container-highest rounded mt-1 overflow-hidden">
+<div class="h-full bg-primary-container" style="width: 76.4%"></div>
+</div>
+</div>
+<div class="p-space-xs bg-surface-container rounded border border-outline-variant">
+<div class="font-label-mono-sm text-[10px] text-outline">OVERSEAS SLOTS REMAINING</div>
+<div class="font-headline-sm text-headline-sm font-bold text-secondary">24 / 80</div>
+<div class="w-full h-1 bg-surface-container-highest rounded mt-1 overflow-hidden">
+<div class="h-full bg-secondary" style="width: 70%"></div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BOTTOM TELEMETRY STRIP & HOTKEY DOCK (48px) -->
+<footer class="h-10 bg-surface-container-lowest border-t border-outline-variant px-margin-panel flex items-center justify-between shrink-0 z-20">
+<!-- Macro Auction Progress Telemetry -->
+<div class="flex items-center gap-space-md text-on-surface-variant font-label-mono-sm text-label-mono-sm">
+<div class="flex items-center gap-space-xs">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+<span class="text-outline">TOTAL PURSE:</span>
+<span class="text-on-surface font-semibold">₹1,200.00 Cr</span>
+</div>
+<span class="text-outline-variant">/</span>
+<div class="flex items-center gap-space-xs">
+<span class="text-outline">CUMULATIVE SPENT:</span>
+<span class="text-primary-container font-semibold">₹894.20 Cr</span>
+<span class="text-outline">(74.5%)</span>
+</div>
+<span class="text-outline-variant">/</span>
+<div class="flex items-center gap-space-xs">
+<span class="text-outline">PLAYERS SOLD:</span>
+<span class="text-secondary font-semibold">178</span>
+</div>
+<span class="text-outline-variant">/</span>
+<div class="flex items-center gap-space-xs">
+<span class="text-outline">RTMs USED:</span>
+<span class="text-on-surface font-semibold">12 / 20</span>
+</div>
+</div>
+<!-- Hotkey Legends (Operators Tactile Guide) -->
+<div class="flex items-center gap-space-sm">
+<div class="flex items-center gap-space-2xs text-outline font-label-hotkey text-label-hotkey">
+<kbd class="px-1.5 py-0.5 bg-surface-container-high border border-outline-variant rounded text-on-surface">1-0</kbd>
+<span>SWITCH FRANCHISE</span>
+</div>
+<span class="text-outline-variant">|</span>
+<div class="flex items-center gap-space-2xs text-outline font-label-hotkey text-label-hotkey">
+<kbd class="px-1.5 py-0.5 bg-surface-container-high border border-outline-variant rounded text-on-surface">Ctrl+F</kbd>
+<span>SEARCH ROSTER</span>
+</div>
+<span class="text-outline-variant">|</span>
+<div class="flex items-center gap-space-2xs text-outline font-label-hotkey text-label-hotkey">
+<kbd class="px-1.5 py-0.5 bg-surface-container-high border border-outline-variant rounded text-on-surface">Ctrl+Z</kbd>
+<span>UNDO CALL</span>
+</div>
+<span class="text-outline-variant">|</span>
+<div class="flex items-center gap-space-2xs text-outline font-label-hotkey text-label-hotkey">
+<kbd class="px-1.5 py-0.5 bg-surface-container-high border border-outline-variant rounded text-on-surface">Alt+E</kbd>
+<span>AUDIT EXPORT</span>
+</div>
+</div>
+</footer>
+</body></html>

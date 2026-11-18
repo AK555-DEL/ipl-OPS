@@ -1,0 +1,143 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Global hardened helpers
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        request.auth.token.email == 'ankithkondaveeti@gmail.com'
+      );
+    }
+
+    function isValidUserPublic(data, userId) {
+      return data.keys().hasAll(['uid', 'displayName', 'teamId', 'role', 'updatedAt'])
+        && data.keys().hasOnly(['uid', 'displayName', 'photoURL', 'teamId', 'role', 'updatedAt'])
+        && data.uid is string && data.uid == userId && isValidId(data.uid)
+        && data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 100
+        && (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() <= 500))
+        && data.teamId is string && data.teamId.size() <= 16
+        && data.teamId in ['t1', 't2', 't3', 't4', 't5', 't6', 't7', 't8', 't9', 't10', 'spectator']
+        && data.role is string && data.role.size() <= 16
+        && data.role in ['bidder', 'spectator']
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidUserPrivate(data, userId) {
+      return data.keys().hasAll(['uid', 'email', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['uid', 'email', 'createdAt', 'updatedAt'])
+        && data.uid is string && data.uid == userId && isValidId(data.uid)
+        && data.email is string && data.email.size() >= 3 && data.email.size() <= 254
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidAuctionRoom(data, roomId) {
+      return data.keys().hasAll(['roomId', 'ownerId', 'title', 'preset', 'status', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['roomId', 'ownerId', 'title', 'preset', 'status', 'createdAt', 'updatedAt'])
+        && data.roomId is string && data.roomId == roomId && data.roomId.size() <= 64 && isValidId(data.roomId)
+        && data.ownerId is string && isValidId(data.ownerId)
+        && data.title is string && data.title.size() >= 1 && data.title.size() <= 120
+        && data.preset is string && data.preset.size() <= 8 && data.preset in ['MEGA', 'MINI']
+        && data.status is string && data.status.size() <= 16 && data.status in ['active', 'completed']
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    // Admins lookup collection (read-only for self-verification; managed out-of-band)
+    match /admins/{adminId} {
+      allow get: if isValidId(adminId) && isOwner(adminId);
+      allow list, create, update, delete: if false;
+    }
+
+    // Public user profiles (non-PII): signed-in users can read their own profile or team assignment
+    match /users/{userId} {
+      allow get: if isValidId(userId) && (isOwner(userId) || isAdmin());
+      allow list: if isSignedIn() && existing().uid == request.auth.uid;
+      allow create: if isValidId(userId)
+        && isOwner(userId)
+        && isValidUserPublic(incoming(), userId)
+        && incoming().updatedAt == request.time;
+      allow update: if isValidId(userId)
+        && isOwner(userId)
+        && isValidUserPublic(incoming(), userId)
+        && incoming().uid == existing().uid
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoURL', 'teamId', 'updatedAt']);
+      allow delete: if false;
+
+      // Private PII subcollection (email) strictly restricted to owner or admin
+      match /private/{docId} {
+        allow get: if isValidId(userId) && isValidId(docId) && (isOwner(userId) || isAdmin());
+        allow list: if isSignedIn() && existing().uid == request.auth.uid;
+        allow create: if isValidId(userId)
+          && isValidId(docId)
+          && docId == 'profile'
+          && isOwner(userId)
+          && isValidUserPrivate(incoming(), userId)
+          && incoming().createdAt == request.time
+          && incoming().updatedAt == request.time;
+        allow update: if isValidId(userId)
+          && isValidId(docId)
+          && docId == 'profile'
+          && isOwner(userId)
+          && isValidUserPrivate(incoming(), userId)
+          && incoming().uid == existing().uid
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && incoming().diff(existing()).affectedKeys().hasOnly(['email', 'updatedAt']);
+        allow delete: if false;
+      }
+    }
+
+    // Operator auction rooms
+    match /auctions/{roomId} {
+      allow get: if isValidId(roomId) && (existing().ownerId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && existing().ownerId == request.auth.uid;
+      allow create: if isValidId(roomId)
+        && isSignedIn()
+        && isValidAuctionRoom(incoming(), roomId)
+        && incoming().ownerId == request.auth.uid
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isValidId(roomId)
+        && isSignedIn()
+        && existing().status != 'completed'
+        && (existing().ownerId == request.auth.uid || isAdmin())
+        && isValidAuctionRoom(incoming(), roomId)
+        && incoming().ownerId == existing().ownerId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (
+          isAdmin() ||
+          incoming().diff(existing()).affectedKeys().hasOnly(['title', 'status', 'updatedAt'])
+        );
+      allow delete: if false;
+    }
+  }
+}

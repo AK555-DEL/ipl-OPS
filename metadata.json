@@ -1,0 +1,6 @@
+{
+  "name": "IPL Auction Ops Terminal",
+  "description": "Real-time IPL mega auction control terminal with operator console, squad feasibility ledger, and live stadium jumbotron display.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

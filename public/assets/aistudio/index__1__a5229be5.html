@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Auction room</title>
+<style>
+/* Tokens: dusk-violet ink, marigold for the live number, lagoon for sold, madder for blocked.
+   Self-host "Bricolage Grotesque" (display) and "Instrument Sans" (text) as woff2 for offline use. */
+:root{color-scheme:dark;--ink:#14111F;--panel:#1D1A2B;--raise:#272339;--line:#3A3552;--text:#F1EDF7;--mute:#A39DBA;
+--gold:#FFC24D;--ok:#3DD9B0;--bad:#FF6B7A;--disp:"Bricolage Grotesque","Instrument Sans",system-ui,sans-serif;--body:"Instrument Sans",system-ui,sans-serif}
+*{box-sizing:border-box;margin:0}
+body{background:var(--ink);color:var(--text);font:16px/1.45 var(--body);font-variant-numeric:tabular-nums;min-height:100vh}
+button,input{font:inherit;color:inherit}button{cursor:pointer}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.dot{position:fixed;right:14px;top:12px;width:9px;height:9px;border-radius:50%;background:var(--bad)}.dot.on{background:var(--ok)}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--bad);color:#2A0710;padding:10px 18px;border-radius:10px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .15s}
+#toast.show{opacity:1}
+.mono{display:grid;place-items:center;border-radius:28%;background:linear-gradient(150deg,var(--raise),var(--panel));border:1px solid var(--line);font:700 2.6rem var(--disp);color:var(--mute)}
+.chip{display:inline-flex;align-items:center;gap:8px;padding:4px 12px 4px 8px;border-radius:99px;background:var(--raise);font-weight:600}
+.chip:before{content:"";width:10px;height:10px;border-radius:50%;background:var(--c)}
+.price{font:700 clamp(3.5rem,13vh,9rem)/1 var(--disp);color:var(--gold);letter-spacing:-.03em}
+.muted{color:var(--mute)}
+
+/* Arena */
+.arena{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(320px,1fr);height:100vh}
+.stage{padding:6vh 4vw;display:flex;flex-direction:column;justify-content:center;gap:3vh}
+.who{display:flex;gap:2vw;align-items:center}.who .mono{width:20vh;height:20vh;font-size:7vh}
+.who h1{font:700 clamp(2.4rem,7vh,5rem)/1.05 var(--disp);letter-spacing:-.02em}
+.who p{font-size:clamp(1rem,2.4vh,1.6rem);color:var(--mute);margin-top:.5vh}
+.trail{display:flex;flex-wrap:wrap;gap:8px}.trail .chip{font-size:clamp(.9rem,2vh,1.3rem)}
+.ledger{background:var(--panel);border-left:1px solid var(--line);padding:3vh 2vw;display:grid;grid-template-rows:repeat(10,1fr);gap:1vh}
+.lrow{display:grid;grid-template-columns:4.2em 1fr auto auto;align-items:center;gap:14px;padding:0 14px;border-radius:12px;border-left:4px solid var(--c)}
+.lrow.lead{background:var(--raise);box-shadow:0 0 0 1px var(--gold)}
+.lrow b{font:700 1.2rem var(--disp)}.meter{height:6px;border-radius:9px;background:var(--raise);overflow:hidden}.meter i{display:block;height:100%;background:var(--c)}
+.overlay{position:fixed;inset:0;display:none;place-items:center;text-align:center;background:rgba(20,17,31,.94)}
+.overlay.show{display:grid;animation:in .25s ease-out}.overlay h2{font:700 clamp(4rem,20vh,12rem)/1 var(--disp)}
+.overlay.sold h2{color:var(--ok)}.overlay.unsold h2{color:var(--bad)}.overlay p{font-size:clamp(1.4rem,4vh,3rem)}
+@keyframes in{from{opacity:0;transform:scale(1.04)}}
+
+/* Operator */
+.op{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:20px;padding:20px;min-height:100vh}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px}
+.lot{display:flex;gap:20px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.lot h1{font:700 2.2rem/1.1 var(--disp)}.lot .mono{width:84px;height:84px;font-size:2rem}.lot .price{font-size:5rem}
+.teams{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:16px 0}
+.tb{display:grid;gap:2px;text-align:left;padding:12px 14px;border-radius:12px;background:var(--panel);border:1px solid var(--line);border-left:5px solid var(--c);position:relative}
+.tb:hover:not(:disabled){background:var(--raise)}.tb b{font:700 1.25rem var(--disp)}.tb small{color:var(--mute)}
+.tb kbd{position:absolute;right:10px;top:8px;color:var(--mute);font:600 .95rem var(--body)}
+.tb.lead{box-shadow:0 0 0 2px var(--gold)}.tb:disabled{opacity:.45;cursor:not-allowed}.tb .why{color:var(--bad);font-size:.8rem;min-height:1.1em}
+.bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn{padding:12px 20px;border-radius:12px;background:var(--raise);border:1px solid var(--line);font-weight:600}
+.btn:hover{border-color:var(--mute)}.btn.ok{background:var(--ok);color:#06231C;border-color:var(--ok)}.btn.bad{background:transparent;color:var(--bad);border-color:var(--bad)}
+.cust{padding:12px 14px;border-radius:12px;background:var(--ink);border:1px solid var(--line);width:11em}.cust.armed{border-color:var(--gold);box-shadow:0 0 0 2px var(--gold)}
+aside{display:grid;gap:20px;align-content:start}aside h3{font:700 1.05rem var(--disp);margin-bottom:8px}aside li{list-style:none;padding:6px 0;border-bottom:1px solid var(--line);font-size:.95rem}
+@media(max-width:1000px){.op,.arena{grid-template-columns:1fr}.teams{grid-template-columns:repeat(2,1fr)}.arena{height:auto}}
+@media(prefers-reduced-motion:reduce){.overlay.show{animation:none}}
+</style>
+</head>
+<body>
+<div id="app"></div><div id="toast" role="status"></div><div class="dot" id="dot" title="Connection"></div>
+<script>
+const V = location.pathname.startsWith('/arena') ? 'arena' : 'operator';
+const $ = s => document.querySelector(s), app = $('#app');
+const fmt = l => (l >= 100 ? +(l / 100).toFixed(2) + ' Cr' : l + ' L');
+const ini = n => n.split(' ').map(w => w[0]).join('');
+let S = null, prevSeq = null, pin = localStorage.getItem('pin') || '';
+
+const lotHTML = L => L
+  ? `<div class="who"><div class="mono">${ini(L.p.name)}</div><div><h1>${L.p.name}</h1><p>${L.p.role} from ${L.p.country}. Overall rating ${L.p.ovr}.</p><p>${L.p.deckName}. Base price ${fmt(L.p.base)}, bids rise by ${fmt(L.p.inc)}</p></div></div>`
+  : '';
+
+/* ---------- Arena ---------- */
+function arena() {
+  if (!$('.arena')) app.innerHTML = '<div class="arena"><section class="stage" id="stage"></section><section class="ledger" id="ledger"></section></div><div class="overlay" id="ov"></div>';
+  const L = S.lot, lead = L && S.teams.find(t => t.id === L.team);
+  $('#stage').innerHTML = L
+    ? `${lotHTML(L)}<div><div class="muted">${L.team ? 'Highest bid' : 'Opening at base price'}</div><div class="price">${fmt(L.price)}</div></div>
+       <div class="trail">${lead ? `<span class="chip" style="--c:${lead.c}">${lead.name}</span>` : ''}${L.trail.slice(0, -1).reverse().map(b => `<span class="chip muted" style="--c:${S.teams.find(t => t.id === b.team).c}">${S.teams.find(t => t.id === b.team).short} ${fmt(b.price)}</span>`).join('')}</div>`
+    : `<h1 style="font:700 clamp(2.4rem,8vh,5rem) var(--disp)">${S.queue[0] ? 'Next up: ' + S.queue[0].name : 'The auction is complete'}</h1>
+       <p class="muted" style="font-size:2.4vh">${S.counts.sold} sold, ${S.counts.unsold} unsold, ${S.counts.left} still to come</p>`;
+  $('#ledger').innerHTML = S.teams.map(t => `<div class="lrow ${t.lead ? 'lead' : ''}" style="--c:${t.c}"><b>${t.short}</b><span class="meter"><i style="width:${t.n / S.cfg.max * 100}%"></i></span><span>${t.n}/${S.cfg.max}</span><span>₹${fmt(t.purse)}</span></div>`).join('');
+  const r = S.last;
+  if (prevSeq !== null && S.seq !== prevSeq && r) {
+    const o = $('#ov'); o.className = 'overlay show ' + r.t.toLowerCase();
+    const tm = r.team && S.teams.find(t => t.id === r.team);
+    o.innerHTML = `<div><h2>${r.t === 'SOLD' ? 'Sold' : 'Unsold'}</h2><p>${r.p.name}${tm ? ' to ' + tm.name + ' for ' + fmt(r.price) : ''}</p></div>`;
+    clearTimeout(arena.t); arena.t = setTimeout(() => o.className = 'overlay', 4000);
+  } else if (!r || S.seq < prevSeq) $('#ov').className = 'overlay';
+}
+
+/* ---------- Operator ---------- */
+function operator() {
+  if (!$('.op')) {
+    app.innerHTML = `<main class="op"><section><div class="panel lot" id="lot"></div><div class="teams" id="teams"></div>
+      <div class="bar"><button class="btn ok" data-a="sold">Sold (S)</button><button class="btn bad" data-a="unsold">Unsold (U)</button>
+      <button class="btn" data-a="next">Next lot (N)</button><button class="btn" data-a="undo">Undo (Ctrl+Z)</button>
+      <button class="btn" data-a="accel">Accelerated round</button>
+      <input class="cust" id="cust" inputmode="decimal" placeholder="Custom bid in Cr (C)" aria-label="Custom bid in crore"></div></section>
+      <aside><div class="panel" id="warn" hidden></div><div class="panel"><h3>Coming up</h3><ul id="q"></ul></div><div class="panel"><h3>Recent actions</h3><ul id="log"></ul></div></aside></main>`;
+    app.onclick = e => { const b = e.target.closest('[data-a]'); if (b) return send({ type: b.dataset.a }); const t = e.target.closest('[data-t]'); if (t) bid(+t.dataset.t); };
+    $('#cust').oninput = e => e.target.classList.toggle('armed', !!e.target.value);
+  }
+  const L = S.lot;
+  $('#lot').innerHTML = L
+    ? `<div style="display:flex;gap:18px;align-items:center"><div class="mono">${ini(L.p.name)}</div><div><h1>${L.p.name}</h1><div class="muted">${L.p.role}, ${L.p.country}${L.p.os ? ' (overseas)' : ''}. Base ${fmt(L.p.base)}</div></div></div>
+       <div><div class="price">${fmt(L.price)}</div><div class="muted">${L.team ? S.teams.find(t => t.id === L.team).name + ' leads. ' : 'No bids yet. '}Next ${fmt(L.next)}</div></div>`
+    : `<div><h1>No player on the floor</h1><div class="muted">${S.counts.left} left, ${S.counts.sold} sold, ${S.counts.unsold} unsold</div></div><button class="btn ok" data-a="next">Call next lot (N)</button>`;
+  $('#teams').innerHTML = S.teams.map((t, i) => `<button class="tb ${t.lead ? 'lead' : ''}" style="--c:${t.c}" data-t="${i}" ${!L || t.block || t.lead ? 'disabled' : ''}>
+      <kbd>${(i + 1) % 10}</kbd><b>${t.short}</b><small>₹${fmt(t.purse)}</small><small>${t.n}/${S.cfg.max} players, ${t.os}/${S.cfg.os} overseas</small><span class="why">${t.lead ? 'Highest bidder' : t.block || ''}</span></button>`).join('');
+  const w = $('#warn'); w.hidden = S.feasibility.ok; w.textContent = S.feasibility.msg || ''; w.style.color = 'var(--bad)';
+  $('#q').innerHTML = S.queue.map(p => `<li>${p.name} <span class="muted">${fmt(p.base)}, ${p.deckName}</span></li>`).join('') || '<li class="muted">Queue is empty</li>';
+  $('#log').innerHTML = S.log.map(x => `<li>${x}</li>`).join('') || '<li class="muted">Nothing yet. Call the first lot</li>';
+}
+function bid(i) {
+  const t = S && S.teams[i]; if (!t) return;
+  const c = $('#cust'), v = parseFloat(c.value);
+  if (c.value && !(v > 0)) return toast('Enter the custom bid as a number in crore');
+  if (c.value) { send({ type: 'custom', team: t.id, price: v * 100 }).then(ok => { if (ok) { c.value = ''; c.classList.remove('armed'); } }); }
+  else send({ type: 'bid', team: t.id });
+}
+addEventListener('keydown', e => {
+  if (V !== 'operator') return;
+  if (e.target.tagName === 'INPUT') { if (e.key === 'Enter') e.target.blur(); if (e.key === 'Escape') { e.target.value = ''; e.target.classList.remove('armed'); e.target.blur(); } return; }
+  if (e.repeat) return; // a held key must never place repeat bids
+  const k = e.key.toLowerCase();
+  if (e.ctrlKey || e.metaKey) { if (k === 'z') { e.preventDefault(); send({ type: 'undo' }); } return; }
+  if (/^[0-9]$/.test(k)) bid(k === '0' ? 9 : +k - 1);
+  else if (k === 's') send({ type: 'sold' }); else if (k === 'u') send({ type: 'unsold' });
+  else if (k === 'n') send({ type: 'next' }); else if (k === 'c') { e.preventDefault(); $('#cust').focus(); }
+});
+
+/* ---------- Transport ---------- */
+let busy = false;
+async function send(b) {
+  if (busy) return false; busy = true;
+  try {
+    const r = await fetch('/api/cmd', { method: 'POST', headers: { 'content-type': 'application/json', 'x-pin': pin }, body: JSON.stringify(b) });
+    if (r.status === 401) { pin = prompt('Operator PIN') || ''; localStorage.setItem('pin', pin); toast('Enter the PIN, then repeat the action'); return false; }
+    if (!r.ok) { toast((await r.json()).error); return false; }
+    return true;
+  } catch { toast('Server unreachable. That action was not saved'); return false; }
+  finally { busy = false; }
+}
+function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), 2800); }
+function connect() {
+  const es = new EventSource('/api/stream');
+  es.onopen = () => $('#dot').classList.add('on');
+  es.onerror = () => $('#dot').classList.remove('on');
+  es.onmessage = m => { S = JSON.parse(m.data); (V === 'arena' ? arena : operator)(); prevSeq = S.seq; };
+}
+connect();
+</script>
+</body>
+</html>
