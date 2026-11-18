@@ -28,7 +28,7 @@ test('all 11 franchise titles map to existing banner assets in public/assets/ais
 
 test('all uploaded player photo mappings reference valid CSV IDs and existing files on disk', () => {
   const mappedIds = Object.keys(UPLOADED_PLAYER_PHOTOS);
-  assert.ok(mappedIds.length >= 147);
+  assert.ok(mappedIds.length >= 152);
   assert.equal(
     UPLOADED_PLAYER_PHOTOS['IPL-033'],
     '/assets/aistudio/yashasvi_jaiswal_31a5fc32.png'
@@ -293,6 +293,13 @@ test('all uploaded player photo mappings reference valid CSV IDs and existing fi
   assert.equal(UPLOADED_PLAYER_PHOTOS['IPL-127'], '/assets/aistudio/Rahmanullah_Gurbaz_87d6d3f4.jpg');
   assert.equal(UPLOADED_PLAYER_PHOTOS['IPL-137'], '/assets/aistudio/Naman_Dhir_ca96ca1d.jpg');
   assert.equal(UPLOADED_PLAYER_PHOTOS['IPL-140'], '/assets/aistudio/Mahipal_Lomror_748d0508.jpg');
+
+  // Newly added missing player photos from latest batch (while preserving all existing ones)
+  assert.equal(UPLOADED_PLAYER_PHOTOS['IPL-007'], '/assets/aistudio/virender_sehwag_06e1b9d3.jpg');
+  assert.equal(UPLOADED_PLAYER_PHOTOS['IPL-011'], '/assets/aistudio/zaheer_khan_a5c4b30a.jpeg');
+  assert.equal(UPLOADED_PLAYER_PHOTOS['IPL-017'], '/assets/aistudio/yusuf_pathan_a004eac7.png');
+  assert.equal(UPLOADED_PLAYER_PHOTOS['IPL-093'], '/assets/aistudio/Vijay_Shankar_c269e1d8.jpg');
+  assert.equal(UPLOADED_PLAYER_PHOTOS['IPL-112'], '/assets/aistudio/Wriddhiman_Saha_143db3a1.jpg');
 
   for (const id of mappedIds) {
     assert.ok(csvIdSet.has(id), `Mapped player ID ${id} does not exist in seed/players.csv`);
