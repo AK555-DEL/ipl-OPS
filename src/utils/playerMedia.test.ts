@@ -28,10 +28,38 @@ test('all 11 franchise titles map to existing banner assets in public/assets/ais
 
 test('all uploaded player photo mappings reference valid CSV IDs and existing files on disk', () => {
   const mappedIds = Object.keys(UPLOADED_PLAYER_PHOTOS);
-  assert.ok(mappedIds.length >= 75);
+  assert.ok(mappedIds.length >= 97);
+  assert.equal(
+    UPLOADED_PLAYER_PHOTOS['IPL-003'],
+    '/assets/aistudio/virat_kohli_4625a09f.png'
+  );
+  assert.equal(
+    UPLOADED_PLAYER_PHOTOS['IPL-004'],
+    '/assets/aistudio/rohit_sharma_a84b94f4.png'
+  );
+  assert.equal(
+    UPLOADED_PLAYER_PHOTOS['IPL-031'],
+    '/assets/aistudio/suryakumar_yadav_dd14af38.png'
+  );
+  assert.equal(
+    UPLOADED_PLAYER_PHOTOS['IPL-032'],
+    '/assets/aistudio/shubman_gill_9fc1865c.png'
+  );
+  assert.equal(
+    UPLOADED_PLAYER_PHOTOS['IPL-037'],
+    '/assets/aistudio/tilak_varma_0dd935ae.png'
+  );
   assert.equal(
     UPLOADED_PLAYER_PHOTOS['IPL-043'],
     '/assets/aistudio/prithvi_shaw_d26a5ccc.png'
+  );
+  assert.equal(
+    UPLOADED_PLAYER_PHOTOS['IPL-046'],
+    '/assets/aistudio/sarfaraz_khan_5d45af46.jpg'
+  );
+  assert.equal(
+    UPLOADED_PLAYER_PHOTOS['IPL-047'],
+    '/assets/aistudio/travis_head_af449ef0.png'
   );
   assert.equal(
     UPLOADED_PLAYER_PHOTOS['IPL-056'],
@@ -46,6 +74,10 @@ test('all uploaded player photo mappings reference valid CSV IDs and existing fi
     '/assets/aistudio/kuldeep_yadav_6af8ab0a.png'
   );
   assert.equal(
+    UPLOADED_PLAYER_PHOTOS['IPL-062'],
+    '/assets/aistudio/Ravi_Bishnoi_5baed59c.jpg'
+  );
+  assert.equal(
     UPLOADED_PLAYER_PHOTOS['IPL-067'],
     '/assets/aistudio/Avesh_Khan_91e27353.jpg'
   );
@@ -58,6 +90,14 @@ test('all uploaded player photo mappings reference valid CSV IDs and existing fi
     '/assets/aistudio/mukesh_kumar_506dd6f6.jpg'
   );
   assert.equal(
+    UPLOADED_PLAYER_PHOTOS['IPL-072'],
+    '/assets/aistudio/rashid_khan_57ff85ee.png'
+  );
+  assert.equal(
+    UPLOADED_PLAYER_PHOTOS['IPL-074'],
+    '/assets/aistudio/trent_boult_0ecee0dc.png'
+  );
+  assert.equal(
     UPLOADED_PLAYER_PHOTOS['IPL-076'],
     '/assets/aistudio/kagiso_rabada_e44f0e24.png'
   );
@@ -66,8 +106,16 @@ test('all uploaded player photo mappings reference valid CSV IDs and existing fi
     '/assets/aistudio/josh_hazlewood_4a7c4eb0.png'
   );
   assert.equal(
+    UPLOADED_PLAYER_PHOTOS['IPL-082'],
+    '/assets/aistudio/ravindra_jadeja_7a1ba01f.png'
+  );
+  assert.equal(
     UPLOADED_PLAYER_PHOTOS['IPL-083'],
     '/assets/aistudio/axar_patel_0f5e9471.png'
+  );
+  assert.equal(
+    UPLOADED_PLAYER_PHOTOS['IPL-084'],
+    '/assets/aistudio/shivam_dube_1cf41563.png'
   );
   assert.equal(
     UPLOADED_PLAYER_PHOTOS['IPL-087'],
@@ -78,6 +126,14 @@ test('all uploaded player photo mappings reference valid CSV IDs and existing fi
     '/assets/aistudio/krunal_pandya_ce2b6961.png'
   );
   assert.equal(
+    UPLOADED_PLAYER_PHOTOS['IPL-096'],
+    '/assets/aistudio/ramandeep_singh_ffabdfd6.jpg'
+  );
+  assert.equal(
+    UPLOADED_PLAYER_PHOTOS['IPL-098'],
+    '/assets/aistudio/sunil_narine_c8b21b37.png'
+  );
+  assert.equal(
     UPLOADED_PLAYER_PHOTOS['IPL-099'],
     '/assets/aistudio/cameron_green_904b72d1.jpg'
   );
@@ -86,8 +142,20 @@ test('all uploaded player photo mappings reference valid CSV IDs and existing fi
     '/assets/aistudio/pat_cummins_c7e09471.png'
   );
   assert.equal(
+    UPLOADED_PLAYER_PHOTOS['IPL-102'],
+    '/assets/aistudio/sam_curran_e3a8adb2.png'
+  );
+  assert.equal(
+    UPLOADED_PLAYER_PHOTOS['IPL-106'],
+    '/assets/aistudio/rishabh_pant_591d8b14.png'
+  );
+  assert.equal(
     UPLOADED_PLAYER_PHOTOS['IPL-107'],
     '/assets/aistudio/kl_rahul_92b3fda4.png'
+  );
+  assert.equal(
+    UPLOADED_PLAYER_PHOTOS['IPL-108'],
+    '/assets/aistudio/sanju_samson_e673fd3b.png'
   );
   assert.equal(
     UPLOADED_PLAYER_PHOTOS['IPL-114'],
@@ -106,6 +174,10 @@ test('all uploaded player photo mappings reference valid CSV IDs and existing fi
     '/assets/aistudio/nicholas_pooran_0d53dd2b.png'
   );
   assert.equal(
+    UPLOADED_PLAYER_PHOTOS['IPL-126'],
+    '/assets/aistudio/quinton_de_kock_cda909c5.png'
+  );
+  assert.equal(
     UPLOADED_PLAYER_PHOTOS['IPL-132'],
     '/assets/aistudio/ashutosh_sharma_0ae82323.jpeg'
   );
@@ -114,12 +186,28 @@ test('all uploaded player photo mappings reference valid CSV IDs and existing fi
     '/assets/aistudio/abdul_samad_4546d06b.png'
   );
   assert.equal(
+    UPLOADED_PLAYER_PHOTOS['IPL-143'],
+    '/assets/aistudio/swastik_chikara_39ac0f2f.png'
+  );
+  assert.equal(
     UPLOADED_PLAYER_PHOTOS['IPL-146'],
     '/assets/aistudio/priyansh_arya_8712e741.jpg'
   );
   assert.equal(
+    UPLOADED_PLAYER_PHOTOS['IPL-159'],
+    '/assets/aistudio/vaibhav_arora_e6cab149.png'
+  );
+  assert.equal(
     UPLOADED_PLAYER_PHOTOS['IPL-160'],
     '/assets/aistudio/mohsin_khan_ba8a0b0f.jpg'
+  );
+  assert.equal(
+    UPLOADED_PLAYER_PHOTOS['IPL-162'],
+    '/assets/aistudio/suyash_sharma_ccea5ae2.png'
+  );
+  assert.equal(
+    UPLOADED_PLAYER_PHOTOS['IPL-167'],
+    '/assets/aistudio/vijaykumar_vyshak_6c8d1e37.png'
   );
 
   for (const id of mappedIds) {
