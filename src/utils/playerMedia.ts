@@ -44,6 +44,7 @@ export const UPLOADED_PLAYER_PHOTOS: Record<string, string> = {
   'IPL-080': '/assets/aistudio/noor-ahmed_4f1034a4.png',
   'IPL-085': '/assets/aistudio/nitish_reddy_d0df6280.jpg',
   'IPL-086': '/assets/aistudio/washington_sundar_7fafce9f.jpeg',
+  'IPL-087': '/assets/aistudio/abhishek_sharma_fb9ca871.jpeg',
   'IPL-088': '/assets/aistudio/Riyan_Parag_8ca6a683.jpg',
   'IPL-090': '/assets/aistudio/Shardul_Thakur_61177de7.jpg',
   'IPL-092': '/assets/aistudio/deepak_hooda_f5951b25.png',
@@ -53,6 +54,7 @@ export const UPLOADED_PLAYER_PHOTOS: Record<string, string> = {
   'IPL-110': '/assets/aistudio/dhruv_jurel_04e70861.jpg',
   'IPL-111': '/assets/aistudio/jitesh_sharma_03a4abc1.png',
   'IPL-115': '/assets/aistudio/Abhishek_porel_de49f301.jpg',
+  'IPL-116': '/assets/aistudio/anuj_rawat_244cdb7e.jpeg',
   'IPL-119': '/assets/aistudio/Vishnu_Vinod_fea5ae82.jpg',
   'IPL-125': '/assets/aistudio/phil_salt_60a6bf11.jpeg',
   'IPL-131': '/assets/aistudio/Shashank_Singh_d3288b8f.jpg',
@@ -60,6 +62,7 @@ export const UPLOADED_PLAYER_PHOTOS: Record<string, string> = {
   'IPL-134': '/assets/aistudio/angkrish_raghuvanshi_0ef0a26d.png',
   'IPL-135': '/assets/aistudio/sameer_rizvi_eb3d06ca.png',
   'IPL-136': '/assets/aistudio/Ayush_Badoni_c84a7175.jpg',
+  'IPL-139': '/assets/aistudio/abdul_samad_4546d06b.png',
   'IPL-141': '/assets/aistudio/Atharva_Taide_7db6841d.jpg',
   'IPL-144': '/assets/aistudio/Shaik_Rasheed_b15ce741.jpg',
   'IPL-145': '/assets/aistudio/Musheer_Khan_78724971.jpg',
@@ -86,6 +89,21 @@ const DECK_ACCENTS: Record<number, { bg: string; ring: string; text: string }> =
   6: { bg: 'from-[#22243c] via-[#1c192f] to-[#0e0b21]', ring: 'border-[#9b7bf0]/40', text: 'text-[#e6defe]' },
   7: { bg: 'from-[#242c33] via-[#1c192f] to-[#0e0b21]', ring: 'border-[#3aa6a0]/40', text: 'text-[#a3e8e2]' },
 };
+
+const WIDE_CREST_BACKDROPS: Record<string, string> = {
+  'IPL-T01': 'radial-gradient(circle at 50% 50%, #5c0d25 0%, #560b22 72%, #47081c 100%)', // LSG
+  'IPL-T04': 'radial-gradient(circle at 50% 50%, #0257a6 0%, #014a91 68%, #01356b 100%)', // GT
+  'IPL-T05': 'radial-gradient(circle at 50% 50%, #e7007c 0%, #de0075 72%, #bd0062 100%)', // RR
+  'IPL-T06': 'radial-gradient(circle at 50% 45%, #f54e00 0%, #eb4200 68%, #cc3300 100%)', // SRH
+};
+
+export function isWideCrestFranchise(playerId: string): boolean {
+  return playerId in WIDE_CREST_BACKDROPS;
+}
+
+export function getWideCrestBackdrop(playerId: string): string | null {
+  return WIDE_CREST_BACKDROPS[playerId] ?? null;
+}
 
 export function getFranchiseBannerSrc(playerId: string): string | null {
   return UPLOADED_FRANCHISE_BANNERS[playerId] ?? null;

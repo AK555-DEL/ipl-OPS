@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { Player } from '../auction/types.ts';
 import { formatLakhs } from '../auction/engine.ts';
-import { getPlayerImageSrc } from '../utils/playerMedia.ts';
+import { getPlayerImageSrc, getWideCrestBackdrop } from '../utils/playerMedia.ts';
 import { formatStageCardFields } from '../utils/stageCard.ts';
 import { CountryFlagSvg } from './CountryFlagSvg.tsx';
 import silverBackdropImg from '../assets/images/silver_card_backdrop_1794933568579.jpg';
@@ -110,19 +110,41 @@ export function StagePlayerCard({
                 >
                   {player.isTitle && player.titleTheme ? (
                     src && !photoFailed ? (
-                      <div
-                        className="relative w-full h-full rounded-full overflow-hidden flex items-center justify-center"
-                        style={{
-                          background: `radial-gradient(circle at 50% 34%, ${player.titleTheme.c}4d, #071122 82%)`,
-                        }}
-                      >
-                        <img
-                          src={src}
-                          alt={`${player.name} franchise banner`}
-                          onError={() => setPhotoFailed(true)}
-                          className="w-full h-full rounded-full object-cover object-center"
-                        />
-                      </div>
+                      (() => {
+                        const wideBackdrop = getWideCrestBackdrop(player.id);
+                        return (
+                          <div
+                            className="relative w-full h-full rounded-full overflow-hidden flex items-center justify-center"
+                            style={{
+                              background:
+                                wideBackdrop ??
+                                `radial-gradient(circle at 50% 34%, ${player.titleTheme.c}4d, #071122 82%)`,
+                            }}
+                          >
+                            {wideBackdrop ? (
+                              <img
+                                src={src}
+                                alt={`${player.name} franchise banner`}
+                                onError={() => setPhotoFailed(true)}
+                                className="relative z-10 w-full h-full object-contain object-center scale-[1.06]"
+                                style={{
+                                  WebkitMaskImage:
+                                    'radial-gradient(ellipse 92% 52% at 50% 50%, black 56%, transparent 95%)',
+                                  maskImage:
+                                    'radial-gradient(ellipse 92% 52% at 50% 50%, black 56%, transparent 95%)',
+                                }}
+                              />
+                            ) : (
+                              <img
+                                src={src}
+                                alt={`${player.name} franchise banner`}
+                                onError={() => setPhotoFailed(true)}
+                                className="w-full h-full rounded-full object-cover object-center"
+                              />
+                            )}
+                          </div>
+                        );
+                      })()
                     ) : (
                       <div
                         className="w-full h-full rounded-full flex flex-col items-center justify-center p-3 text-center"
