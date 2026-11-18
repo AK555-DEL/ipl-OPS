@@ -603,16 +603,17 @@ export async function createApp(httpServer?: http.Server): Promise<{
   app.post('/api/cmd', (req, res) => {
     const body = (req.body || {}) as CommandBody;
     const isBidAction = body.type === 'bid' || body.type === 'custom' || body.type === 'jump';
+    const isUndoBidAction = body.type === 'undobid';
     const teamTokenHeader =
       typeof req.headers['x-team-token'] === 'string' ? req.headers['x-team-token'] : '';
     const subOpRole = getSubOpRole(req);
     const hostOk = isHostAuthorized(req);
 
-    if (isBidAction) {
+    if (isBidAction || isUndoBidAction) {
       if (hostOk) {
         // Main Operator has full authority
       } else if (subOpRole === 'bids') {
-        // Bids Sub-Operator can place bids for any participating team
+        // Bids Sub-Operator can place and undo bids for any participating team
       } else if (subOpRole === 'display') {
         res.status(403).json({
           error: 'Display Sub-Operator PIN is read-only for Arena 1. Use a Bids Operator PIN or Team Token to bid.',
@@ -624,13 +625,36 @@ export async function createApp(httpServer?: http.Server): Promise<{
           res.status(401).json({ error: 'Invalid or expired team token. Re-join room with a valid token.' });
           return;
         }
-        if ('team' in body && resolvedTeam !== body.team) {
+        if (isBidAction && 'team' in body && resolvedTeam !== body.team) {
           res.status(403).json({ error: 'Your token only permits bidding for your assigned team.' });
           return;
         }
+        if (isUndoBidAction) {
+          const vm = currentView();
+          if (!vm.lot || vm.lot.trail.length === 0) {
+            res.status(400).json({ error: 'No bids on the current lot to undo.' });
+            return;
+          }
+          if (vm.lot.team !== resolvedTeam) {
+            res.status(403).json({
+              error: 'You can only undo your own bid while your team holds the highest bid.',
+            });
+            return;
+          }
+          const validSingleStep =
+            typeof body.toIndex === 'number'
+              ? Math.trunc(body.toIndex) === vm.lot.trail.length - 2
+              : (body.count ?? 1) === 1;
+          if (!validSingleStep) {
+            res.status(403).json({
+              error: 'Team room tokens can only undo their own latest bid (1 step).',
+            });
+            return;
+          }
+        }
       } else if (tokenStore.hostSessionToken) {
         res.status(401).json({
-          error: 'Enter a Bids Operator PIN or Team Room Token to place bids.',
+          error: 'Enter a Bids Operator PIN or Team Room Token to place or undo bids.',
         });
         return;
       } else if (PIN && req.headers['x-pin'] !== PIN) {

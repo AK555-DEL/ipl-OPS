@@ -12,6 +12,7 @@ import {
   LogIn,
   LogOut,
   Rocket,
+  RotateCcw,
   Share2,
   Shield,
   SlidersHorizontal,
@@ -221,6 +222,25 @@ export function BidderConsole({
     const lakhs = Math.round(Number(raw) * 100);
     const ok = await onSend({ type: 'custom', team: myTeam.id, price: lakhs });
     if (ok) setCustomCr('');
+  };
+
+  const canUndoLatest = Boolean(
+    lot &&
+      lot.trail.length > 0 &&
+      !busy &&
+      hasRoomAccess &&
+      (!isLockedBidder || myTeam.lead)
+  );
+  const canRevertHistory = Boolean(lot && lot.trail.length > 0 && !busy && isHostOverride);
+
+  const handleUndoBid = async () => {
+    if (!canUndoLatest) return;
+    await onSend({ type: 'undobid', count: 1 });
+  };
+
+  const handleRevertToBid = async (toIndex: number) => {
+    if (!canRevertHistory) return;
+    await onSend({ type: 'undobid', toIndex });
   };
 
   const iplSlabs = [
@@ -624,19 +644,42 @@ export function BidderConsole({
                       {myTeam.name} ({myTeam.short})
                     </span>
                   </div>
-                  {myTeam.lead ? (
-                    <span className="font-[JetBrains_Mono] text-[11px] font-bold text-[#4edea3]">
-                      You hold the highest bid — wait for a challenger
-                    </span>
-                  ) : myTeam.block ? (
-                    <span className="font-[JetBrains_Mono] text-[11px] font-bold text-[#ffb4ab]">
-                      Blocked: {myTeam.block}
-                    </span>
-                  ) : (
-                    <span className="font-[JetBrains_Mono] text-[10px] text-[#4edea3]">
-                      AUTO-INCREMENT BY IPL SLAB
-                    </span>
-                  )}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {myTeam.lead ? (
+                      <span className="font-[JetBrains_Mono] text-[11px] font-bold text-[#4edea3]">
+                        You hold the highest bid — wait for a challenger
+                      </span>
+                    ) : myTeam.block ? (
+                      <span className="font-[JetBrains_Mono] text-[11px] font-bold text-[#ffb4ab]">
+                        Blocked: {myTeam.block}
+                      </span>
+                    ) : (
+                      <span className="font-[JetBrains_Mono] text-[10px] text-[#4edea3]">
+                        AUTO-INCREMENT BY IPL SLAB
+                      </span>
+                    )}
+                    {lot.trail.length > 0 && (
+                      <button
+                        type="button"
+                        disabled={!canUndoLatest}
+                        onClick={() => void handleUndoBid()}
+                        data-testid="bidder-undo-bid-btn"
+                        title={
+                          isLockedBidder && !myTeam.lead
+                            ? 'Only the team holding the highest bid can undo its latest bid'
+                            : 'Undo the latest bid based on bid history'
+                        }
+                        className="px-2.5 py-1 rounded bg-[#93000a]/50 hover:bg-[#93000a]/80 border border-[#ffb4ab]/60 text-[#ffb4ab] font-[JetBrains_Mono] text-[10px] font-bold flex items-center gap-1 transition-colors disabled:opacity-35 disabled:cursor-not-allowed"
+                      >
+                        <RotateCcw className="w-3 h-3" />
+                        <span>
+                          {isLockedBidder
+                            ? `Undo My Bid (${formatCurrency(lot.price)})`
+                            : `Undo Last (${leader?.short ?? ''} ${formatCurrency(lot.price)})`}
+                        </span>
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {/* IPL Auto-Increment Slabs */}
@@ -793,6 +836,95 @@ export function BidderConsole({
               </div>
             </div>
           </div>
+
+          {lot && (
+            <div
+              className="border-b border-[#504533] bg-[#141026] flex flex-col max-h-[210px] shrink-0 overflow-hidden"
+              data-testid="bidder-bid-history"
+            >
+              <div className="px-3 py-1.5 bg-[#201d33] border-b border-[#2b273e] flex items-center justify-between gap-2 shrink-0">
+                <span className="font-[JetBrains_Mono] text-[10px] font-bold text-[#ffdb9f] flex items-center gap-1.5">
+                  <RotateCcw className="w-3 h-3 text-[#fdb813]" />
+                  <span>LOT BID HISTORY ({lot.trail.length})</span>
+                </span>
+                {lot.trail.length > 0 && (
+                  <button
+                    type="button"
+                    disabled={!canUndoLatest}
+                    onClick={() => void handleUndoBid()}
+                    data-testid="bidder-history-undo-btn"
+                    className="px-2 py-0.5 rounded bg-[#93000a]/50 hover:bg-[#93000a]/80 border border-[#ffb4ab]/50 text-[#ffb4ab] font-[JetBrains_Mono] text-[9px] font-bold disabled:opacity-35"
+                  >
+                    Undo Latest
+                  </button>
+                )}
+              </div>
+              <div className="overflow-y-auto custom-scroll p-2 space-y-1 font-[JetBrains_Mono] text-[10px]">
+                {lot.trail.length === 0 ? (
+                  <div className="text-center text-[#9d8f79] py-2">
+                    No bids placed yet on {lot.p.name}.
+                  </div>
+                ) : (
+                  [...lot.trail]
+                    .map((b, bidIdx) => {
+                      const prevPrice = bidIdx === 0 ? lot.p.base : lot.trail[bidIdx - 1].price;
+                      const delta = Math.max(0, b.price - prevPrice);
+                      return { ...b, bidIdx, delta };
+                    })
+                    .reverse()
+                    .map((b) => {
+                      const tm = vm.teams.find((x) => x.id === b.team);
+                      const isLatest = b.bidIdx === lot.trail.length - 1;
+                      const isMine = b.team === myTeam.id;
+                      return (
+                        <div
+                          key={`${b.team}-${b.price}-${b.bidIdx}`}
+                          className={`px-2 py-1 rounded flex items-center justify-between gap-1.5 ${
+                            isLatest
+                              ? 'bg-[#fdb813]/15 border border-[#fdb813]/50 text-[#fdb813] font-bold'
+                              : 'bg-[#1c192f] border border-[#2b273e] text-[#d5c4ac]'
+                          }`}
+                        >
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <span className="text-[9px] text-[#9d8f79]">#{b.bidIdx + 1}</span>
+                            <span className="truncate">
+                              {tm?.short || b.team}
+                              {isMine ? ' (YOU)' : ''}
+                            </span>
+                            <span className="text-[9px] text-[#4edea3]">
+                              {b.bidIdx === 0 ? 'OPEN' : `+₹${formatLakhs(b.delta)}`}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <span>{formatCurrency(b.price)}</span>
+                            {isLatest && canUndoLatest && (
+                              <button
+                                type="button"
+                                onClick={() => void handleUndoBid()}
+                                data-testid={`bidder-undo-entry-${b.bidIdx}`}
+                                className="px-1.5 py-0.5 rounded bg-[#93000a]/60 hover:bg-[#93000a] text-[#ffb4ab] text-[9px] font-bold"
+                              >
+                                Undo
+                              </button>
+                            )}
+                            {!isLatest && canRevertHistory && (
+                              <button
+                                type="button"
+                                onClick={() => void handleRevertToBid(b.bidIdx)}
+                                data-testid={`bidder-revert-${b.bidIdx}`}
+                                className="px-1.5 py-0.5 rounded bg-[#201d33] hover:bg-[#2b273e] border border-[#504533] text-[#ffdb9f] text-[9px] font-bold"
+                              >
+                                Revert
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })
+                )}
+              </div>
+            </div>
+          )}
 
           <div className="px-3 py-1.5 bg-[#201d33] border-b border-[#504533] flex items-center justify-between shrink-0">
             <span className="font-[JetBrains_Mono] text-[10px] font-bold text-[#ffdb9f] flex items-center gap-1.5">

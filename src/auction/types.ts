@@ -145,6 +145,7 @@ export interface TeamView {
 export type AuctionEvent =
   | { t: 'CALL'; pid: string; ts: number }
   | { t: 'BID'; team: string; price: number; ts: number }
+  | { t: 'UNDO_BID'; count: number; team: string; price: number; ts: number }
   | { t: 'RESET'; ts: number }
   | { t: 'SOLD'; pid: string; team: string; price: number; ts: number }
   | { t: 'UNSOLD'; pid: string; ts: number }
@@ -269,6 +270,7 @@ export type CommandBody =
   | { type: 'bid'; team: string }
   | { type: 'custom'; team: string; price: number }
   | { type: 'jump'; team: string; delta: number }
+  | { type: 'undobid'; count?: number; toIndex?: number }
   | { type: 'resetbid' }
   | { type: 'sold' }
   | { type: 'unsold' }

@@ -8,6 +8,7 @@ import {
   Home,
   Lock,
   LogOut,
+  RotateCcw,
   Share2,
   ShieldAlert,
   SlidersHorizontal,
@@ -194,6 +195,16 @@ export function BidsOperatorConsole({
     const lakhs = Math.round(Number(raw) * 100);
     const ok = await onSend({ type: 'custom', team: activeTeam.id, price: lakhs });
     if (ok) setCustomCr('');
+  };
+
+  const handleUndoLastBid = async () => {
+    if (!lot || busy || !canPlaceBids || lot.trail.length === 0) return;
+    await onSend({ type: 'undobid', count: 1 });
+  };
+
+  const handleRevertToBid = async (toIndex: number) => {
+    if (!lot || busy || !canPlaceBids || lot.trail.length === 0) return;
+    await onSend({ type: 'undobid', toIndex });
   };
 
   const headerBar = (
@@ -606,9 +617,26 @@ export function BidsOperatorConsole({
                       </span>
                     )}
                   </div>
-                  <span className="px-2 py-0.5 rounded bg-[#00a572]/20 border border-[#4edea3]/50 text-[#4edea3] text-[10px] font-bold">
-                    {lot.team === null ? 'FIRST BID: BASE' : `AUTO STEP +₹${formatLakhs(activeIncrement)}`}
-                  </span>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {lot.trail.length > 0 && (
+                      <button
+                        type="button"
+                        disabled={busy || !canPlaceBids}
+                        onClick={() => void handleUndoLastBid()}
+                        data-testid="bids-op-undo-bid-btn"
+                        title="Undo the most recent bid from bid history (Shortcut: Z)"
+                        className="px-2.5 py-0.5 rounded bg-[#93000a]/50 hover:bg-[#93000a]/80 border border-[#ffb4ab]/60 text-[#ffb4ab] text-[10px] font-bold flex items-center gap-1 transition-colors disabled:opacity-40"
+                      >
+                        <RotateCcw className="w-3 h-3" />
+                        <span>
+                          [Z] Undo {leader?.short ?? ''} {formatCurrency(lot.price)}
+                        </span>
+                      </button>
+                    )}
+                    <span className="px-2 py-0.5 rounded bg-[#00a572]/20 border border-[#4edea3]/50 text-[#4edea3] text-[10px] font-bold">
+                      {lot.team === null ? 'FIRST BID: BASE' : `AUTO STEP +₹${formatLakhs(activeIncrement)}`}
+                    </span>
+                  </div>
                 </div>
               </div>
             ) : (
@@ -802,42 +830,118 @@ export function BidsOperatorConsole({
           </div>
         </section>
 
-        {/* RIGHT COLUMN (3 cols): Live Bid Trail & 11 Franchise Squads */}
+        {/* RIGHT COLUMN (3 cols): Interactive Bid History (Undo/Revert) & 11 Franchise Squads */}
         <section className="col-span-12 lg:col-span-3 flex flex-col gap-2.5 min-h-0 overflow-hidden">
-          <div className="bg-[#0e0b21] border border-[#504533] rounded-lg p-2.5 flex flex-col gap-1.5 shrink-0 max-h-40 overflow-hidden">
-            <div className="flex items-center justify-between border-b border-[#2b273e] pb-1">
+          <div
+            className="bg-[#0e0b21] border border-[#504533] rounded-lg p-2.5 flex flex-col gap-1.5 shrink-0 min-h-[180px] max-h-[290px] overflow-hidden"
+            data-testid="bids-op-bid-history"
+          >
+            <div className="flex items-center justify-between border-b border-[#2b273e] pb-1.5 gap-1.5">
               <span className="font-[Space_Grotesk] text-xs font-bold text-[#e6defe] flex items-center gap-1.5">
                 {lot && lot.bidCount >= 3 ? (
                   <Flame className="w-3.5 h-3.5 text-[#fdb813]" />
                 ) : (
                   <Zap className="w-3.5 h-3.5 text-[#4edea3]" />
                 )}
-                <span>Live Bid Trail</span>
+                <span>Bid History ({lot ? lot.trail.length : 0})</span>
               </span>
-              <span className="font-[JetBrains_Mono] text-[10px] text-[#fdb813]">
-                {lot ? `${lot.bidCount} bids` : 'IDLE'}
-              </span>
-            </div>
-            <div className="overflow-y-auto custom-scroll space-y-1 font-[JetBrains_Mono] text-[10px]">
-              {!lot || lot.trail.length === 0 ? (
-                <div className="text-[#9d8f79] py-2 text-center">No bids placed on current lot yet.</div>
+              {lot && lot.trail.length > 0 ? (
+                <button
+                  type="button"
+                  disabled={busy || !canPlaceBids}
+                  onClick={() => void handleUndoLastBid()}
+                  data-testid="bids-op-history-undo-latest"
+                  className="px-2 py-0.5 rounded bg-[#93000a]/50 hover:bg-[#93000a]/80 border border-[#ffb4ab]/50 text-[#ffb4ab] font-[JetBrains_Mono] text-[10px] font-bold flex items-center gap-1 disabled:opacity-40"
+                >
+                  <RotateCcw className="w-2.5 h-2.5" />
+                  <span>Undo Last</span>
+                </button>
               ) : (
-                [...lot.trail].reverse().map((b, idx) => {
-                  const tm = vm.teams.find((x) => x.id === b.team);
-                  return (
-                    <div
-                      key={`${b.team}-${b.price}-${idx}`}
-                      className={`px-2 py-1 rounded flex items-center justify-between ${
-                        idx === 0
-                          ? 'bg-[#fdb813]/15 border border-[#fdb813]/50 text-[#fdb813] font-bold'
-                          : 'bg-[#1c192f] text-[#d5c4ac]'
-                      }`}
+                <span className="font-[JetBrains_Mono] text-[10px] text-[#9d8f79]">IDLE</span>
+              )}
+            </div>
+            <div className="overflow-y-auto custom-scroll space-y-1 font-[JetBrains_Mono] text-[10px] flex-1 min-h-0 pr-0.5">
+              {!lot || lot.trail.length === 0 ? (
+                <div className="text-[#9d8f79] py-4 text-center">
+                  No bids placed on current lot yet.
+                </div>
+              ) : (
+                <>
+                  {[...lot.trail]
+                    .map((b, bidIdx) => {
+                      const prevPrice = bidIdx === 0 ? lot.p.base : lot.trail[bidIdx - 1].price;
+                      const delta = Math.max(0, b.price - prevPrice);
+                      return { ...b, bidIdx, delta };
+                    })
+                    .reverse()
+                    .map((b) => {
+                      const tm = vm.teams.find((x) => x.id === b.team);
+                      const isLatest = b.bidIdx === lot.trail.length - 1;
+                      return (
+                        <div
+                          key={`${b.team}-${b.price}-${b.bidIdx}`}
+                          data-testid={`bids-op-history-row-${b.bidIdx}`}
+                          className={`px-2 py-1.5 rounded flex items-center justify-between gap-1.5 ${
+                            isLatest
+                              ? 'bg-[#fdb813]/15 border border-[#fdb813]/50 text-[#fdb813] font-bold'
+                              : 'bg-[#1c192f] border border-[#2b273e] text-[#d5c4ac]'
+                          }`}
+                        >
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <span className="text-[9px] text-[#9d8f79] w-5 shrink-0">
+                              #{b.bidIdx + 1}
+                            </span>
+                            <span
+                              className="w-2 h-2 rounded-full shrink-0"
+                              style={{ backgroundColor: tm?.c ?? '#fdb813' }}
+                            />
+                            <span className="truncate">{tm?.short || b.team}</span>
+                            <span className="text-[9px] text-[#4edea3] shrink-0">
+                              {b.bidIdx === 0 ? 'OPEN' : `+₹${formatLakhs(b.delta)}`}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <span>{formatCurrency(b.price)}</span>
+                            {isLatest ? (
+                              <button
+                                type="button"
+                                disabled={busy || !canPlaceBids}
+                                onClick={() => void handleUndoLastBid()}
+                                data-testid={`bids-op-undo-entry-${b.bidIdx}`}
+                                title="Undo this misbid"
+                                className="px-1.5 py-0.5 rounded bg-[#93000a]/60 hover:bg-[#93000a] text-[#ffb4ab] text-[9px] font-extrabold disabled:opacity-40"
+                              >
+                                Undo
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                disabled={busy || !canPlaceBids}
+                                onClick={() => void handleRevertToBid(b.bidIdx)}
+                                data-testid={`bids-op-revert-${b.bidIdx}`}
+                                title={`Revert back to #${b.bidIdx + 1} (${tm?.short || b.team} ${formatCurrency(b.price)})`}
+                                className="px-1.5 py-0.5 rounded bg-[#201d33] hover:bg-[#2b273e] border border-[#504533] hover:border-[#fdb813] text-[#ffdb9f] text-[9px] font-bold disabled:opacity-40"
+                              >
+                                Revert
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  <div className="pt-1 flex items-center justify-between px-2 py-1 rounded bg-[#141026] border border-[#2b273e] text-[#9d8f79]">
+                    <span>Base · {formatCurrency(lot.p.base)}</span>
+                    <button
+                      type="button"
+                      disabled={busy || !canPlaceBids}
+                      onClick={() => void handleRevertToBid(-1)}
+                      data-testid="bids-op-revert-base"
+                      className="px-1.5 py-0.5 rounded bg-[#93000a]/40 hover:bg-[#93000a]/70 text-[#ffb4ab] text-[9px] font-bold disabled:opacity-40"
                     >
-                      <span>{tm?.short || b.team}</span>
-                      <span>{formatCurrency(b.price)}</span>
-                    </div>
-                  );
-                })
+                      Clear to Base
+                    </button>
+                  </div>
+                </>
               )}
             </div>
           </div>

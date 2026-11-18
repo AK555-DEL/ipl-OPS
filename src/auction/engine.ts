@@ -421,6 +421,21 @@ export function applyEvent(s: InternalState, e: AuctionEvent, pidMap: Map<string
       s.lot.trail.push({ team: e.team, price: e.price, ts: e.ts });
       break;
     }
+    case 'UNDO_BID': {
+      if (!s.lot || s.lot.trail.length === 0) break;
+      const p = pidMap.get(s.lot.pid)!;
+      const removeCount = Math.max(1, Math.min(e.count || 1, s.lot.trail.length));
+      s.lot.trail.splice(s.lot.trail.length - removeCount, removeCount);
+      const prev = s.lot.trail[s.lot.trail.length - 1];
+      if (prev) {
+        s.lot.team = prev.team;
+        s.lot.price = prev.price;
+      } else {
+        s.lot.team = null;
+        s.lot.price = p.base;
+      }
+      break;
+    }
     case 'RESET': {
       if (!s.lot) break;
       const p = pidMap.get(s.lot.pid)!;
@@ -766,6 +781,30 @@ export function executeCommand(
       if (block) throw `${label}: ${block}`;
       return events.concat({ t: 'BID', team: t.id, price, ts: now });
     }
+    case 'undobid': {
+      if (!l) throw 'No lot is live in the arena';
+      if (!l.trail.length) throw 'No bids on the current lot to undo';
+      let removeCount: number;
+      if (typeof body.toIndex === 'number' && Number.isFinite(body.toIndex)) {
+        const target = Math.trunc(body.toIndex);
+        if (target < -1 || target >= l.trail.length - 1) {
+          throw 'Select an earlier bid in history to revert to';
+        }
+        removeCount = l.trail.length - 1 - target;
+      } else {
+        const requested = Number.isFinite(body.count) ? Math.trunc(Number(body.count)) : 1;
+        if (requested < 1) throw 'Undo count must be at least 1';
+        removeCount = Math.min(requested, l.trail.length);
+      }
+      const lastEntry = l.trail[l.trail.length - 1];
+      return events.concat({
+        t: 'UNDO_BID',
+        count: removeCount,
+        team: lastEntry.team,
+        price: lastEntry.price,
+        ts: now,
+      });
+    }
     case 'resetbid': {
       if (!l) throw 'No lot is live in the arena';
       if (!l.trail.length) throw 'No bids to clear';
@@ -905,6 +944,12 @@ function describeEvent(
       break;
     case 'BID':
       text = `${tLabel} bid ${formatCurrency(e.price)}`;
+      break;
+    case 'UNDO_BID':
+      text =
+        e.count > 1
+          ? `Reverted ${e.count} bids from ${tLabel} (${formatCurrency(e.price)})`
+          : `Undid bid by ${tLabel} (${formatCurrency(e.price)})`;
       break;
     case 'RESET':
       text = 'Active bids cleared';
@@ -1145,7 +1190,7 @@ export function buildViewModel(
             p: activePlayer,
             price: l.price,
             team: l.team,
-            trail: l.trail.slice(-6),
+            trail: [...l.trail],
             next: np,
             inc: getIplBidIncrement(l.price),
             bidCount: l.trail.length,
