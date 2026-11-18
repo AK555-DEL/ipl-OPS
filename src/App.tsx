@@ -387,16 +387,30 @@ function AuctionAppShell() {
         }
       }
 
-      // User Bidder Console shortcuts: keys 1-9, 0, and - place an instant bid (locked to bidderTeamId if using a token)
-      if (route === 'bid' && vm.lot && /^([0-9]|-)$/.test(e.key)) {
+      // User Bidder Console shortcuts: keys 1-9, 0, and - place an instant bid; Z undoes last bid/action
+      if (route === 'bid') {
         if (!bidderToken && !hostToken) return;
-        const idx = e.key === '-' ? 10 : e.key === '0' ? 9 : Number(e.key) - 1;
-        const team = vm.teams[idx];
-        if (!team) return;
-        if (bidderTeamId && !hostToken && team.id !== bidderTeamId) return;
-        if (team.lead || team.block) return;
-        e.preventDefault();
-        void sendCommand({ type: 'bid', team: team.id });
+        if (e.key.toLowerCase() === 'z') {
+          if (vm.lot && vm.lot.trail.length > 0) {
+            if (!bidderTeamId || hostToken || vm.lot.team === bidderTeamId) {
+              e.preventDefault();
+              void sendCommand({ type: 'undobid', count: 1 });
+            }
+          } else if (hostToken && vm.canUndo) {
+            e.preventDefault();
+            void sendCommand({ type: 'undo' });
+          }
+          return;
+        }
+        if (vm.lot && /^([0-9]|-)$/.test(e.key)) {
+          const idx = e.key === '-' ? 10 : e.key === '0' ? 9 : Number(e.key) - 1;
+          const team = vm.teams[idx];
+          if (!team) return;
+          if (bidderTeamId && !hostToken && team.id !== bidderTeamId) return;
+          if (team.lead || team.block) return;
+          e.preventDefault();
+          void sendCommand({ type: 'bid', team: team.id });
+        }
       }
     };
 
@@ -517,6 +531,7 @@ function AuctionAppShell() {
       ) : route === 'bid' ? (
         <BidderConsole
           vm={vm}
+          players={players}
           connected={connected}
           busy={busy}
           initialTeamId={initialBidderTeam ?? preferredTeamId}
