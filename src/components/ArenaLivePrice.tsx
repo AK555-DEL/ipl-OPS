@@ -8,6 +8,7 @@ import {
   TrendingUp,
   Trophy,
   Users,
+  Wallet,
   Zap,
 } from 'lucide-react';
 import type {
@@ -19,7 +20,7 @@ import type {
   TeamView,
 } from '../auction/types.ts';
 import { formatCurrency, formatLakhs, formatPlayerCardMeta } from '../auction/engine.ts';
-import { computeBiddingRateInfo } from '../utils/stageCard.ts';
+import { buildTeamPurseRows, computeBiddingRateInfo, type TeamPurseRow } from '../utils/stageCard.ts';
 import { PlayerPortrait } from './PlayerPortrait.tsx';
 import { TeamLogoBadge } from './TeamLogoBadge.tsx';
 
@@ -103,6 +104,96 @@ function resolveHeatTier(bidCount: number, multiplierNum: number): HeatTier {
     barGradient: 'linear-gradient(90deg, #00a572 0%, #4edea3 100%)',
     borderColor: 'border-[#4edea3]/60',
   };
+}
+
+function purseAccentClasses(row: TeamPurseRow): { amountText: string; barColor: string } {
+  if (row.isLeading) {
+    return { amountText: 'text-[#fdb813]', barColor: '#fdb813' };
+  }
+  if (row.remainingPct <= 15 || row.team.solvency === 'CRITICAL') {
+    return { amountText: 'text-[#ffb4ab]', barColor: '#ef4444' };
+  }
+  if (row.remainingPct <= 35 || row.team.solvency === 'CAUTION') {
+    return { amountText: 'text-[#fbbf24]', barColor: '#f59e0b' };
+  }
+  return { amountText: 'text-[#4edea3]', barColor: '#4edea3' };
+}
+
+function TeamRemainingPurseList({
+  rows,
+  maxSquad,
+}: {
+  rows: TeamPurseRow[];
+  maxSquad: number;
+}) {
+  return (
+    <div className="flex-1 min-h-0 flex flex-col gap-1.5">
+      <div className="flex items-center justify-between px-2 font-[JetBrains_Mono] text-[10px] font-bold uppercase tracking-wider text-[#8ea5ce] shrink-0">
+        <span>TEAM</span>
+        <span>REMAINING</span>
+      </div>
+      <div
+        className="flex-1 min-h-0 overflow-y-auto lg:overflow-hidden grid grid-cols-1 lg:grid-rows-11 gap-1.5 pr-0.5"
+        data-testid="live-price-team-purses"
+      >
+        {rows.map((row) => {
+          const { team } = row;
+          const accent = purseAccentClasses(row);
+          return (
+            <div
+              key={team.id}
+              data-testid={`live-price-purse-${team.id}`}
+              className={`rounded-lg px-2.5 py-1.5 border flex flex-col justify-center gap-1 min-h-0 transition-colors ${
+                row.isLeading
+                  ? 'bg-[#172647] border-[#fdb813] shadow-[0_0_14px_rgba(253,184,19,0.16)]'
+                  : 'bg-[#121a32] border-[#253256]'
+              }`}
+            >
+              <div className="flex items-center justify-between gap-2 min-w-0">
+                <div className="flex items-center gap-2 min-w-0">
+                  <TeamLogoBadge team={team} size="xs" />
+                  <div className="min-w-0 leading-tight">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <span className="font-[Chakra_Petch] text-xs font-bold text-white truncate">
+                        {team.name}
+                      </span>
+                      {row.isLeading && (
+                        <Crown className="w-3 h-3 text-[#fdb813] shrink-0" aria-label="Leading bidder" />
+                      )}
+                    </div>
+                    <div className="font-[JetBrains_Mono] text-[10px] text-[#9ec5ff] truncate tabular-nums">
+                      {row.isLeading && row.projectedAfterBidLakhs !== null
+                        ? `After bid: ${formatCurrency(row.projectedAfterBidLakhs)}`
+                        : `${team.paddle} · ${team.n}/${maxSquad} players`}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="text-right shrink-0 leading-tight">
+                  <div
+                    className={`font-[Antonio] font-bold text-base sm:text-lg tabular-nums leading-none whitespace-nowrap ${accent.amountText}`}
+                    data-testid={`live-price-purse-amount-${team.id}`}
+                  >
+                    {formatCurrency(row.remainingLakhs)}
+                  </div>
+                </div>
+              </div>
+
+              <div className="w-full h-1 rounded-full bg-[#1a2442] overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-[width] duration-300"
+                  style={{
+                    width: `${row.remainingPct}%`,
+                    backgroundColor: accent.barColor,
+                  }}
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 export function ArenaLivePrice({
@@ -190,8 +281,13 @@ export function ArenaLivePrice({
     return list;
   }, [lot, teamMap]);
 
+  const teamPurseRows = useMemo(
+    () => buildTeamPurseRows(vm.teams, lot),
+    [vm.teams, lot]
+  );
+
   // =========================================================================
-  // LIVE LOT VIEW: Real-time Price Surge & Gamified Bidding Escalation
+  // LIVE LOT VIEW: 3-Column Broadcast — Bid Ladder | Live Price | Team Purses
   // =========================================================================
   if (lot && rateInfo) {
     const totalDuration = Math.max(1, lot.durationSec);
@@ -211,15 +307,138 @@ export function ArenaLivePrice({
 
     return (
       <main
-        className="flex-1 min-h-0 overflow-hidden bg-[#090d1b] px-4 py-3 lg:px-6 lg:py-4 grid grid-cols-12 gap-4 items-stretch"
+        className="flex-1 min-h-0 overflow-y-auto lg:overflow-hidden bg-[#090d1b] px-4 py-3 lg:px-5 lg:py-3.5 grid grid-cols-12 gap-3.5 items-stretch"
         data-testid="arena-live-price"
       >
-        {/* LEFT HERO COLUMN (8 cols): Subject Header + Giant Live Price + Highest Bidder Spotlight */}
-        <section className="col-span-12 lg:col-span-8 flex flex-col justify-between gap-3.5 min-h-0">
+        {/* LEFT COLUMN (3 cols): LIVE BID LADDER */}
+        <aside className="order-3 lg:order-1 col-span-12 lg:col-span-3 bg-[#0f162b] border border-[#2a385e] rounded-2xl p-3 flex flex-col gap-2.5 min-h-0">
+          <div className="flex items-center justify-between gap-2 pb-2 border-b border-[#253256] shrink-0">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <TrendingUp className="w-4 h-4 text-[#fdb813] shrink-0" />
+              <h2 className="font-[Chakra_Petch] text-xs font-extrabold uppercase tracking-wider text-white truncate">
+                LIVE BID LADDER
+              </h2>
+            </div>
+            <span className="font-[JetBrains_Mono] text-[11px] font-bold text-[#4edea3] tabular-nums whitespace-nowrap shrink-0">
+              {lot.bidCount} {lot.bidCount === 1 ? 'Bid' : 'Bids'}
+            </span>
+          </div>
+
+          {/* Contending Teams Strip */}
+          <div className="shrink-0 flex items-center justify-between gap-2 bg-[#141d38] border border-[#27365e] rounded-lg px-2.5 py-1.5">
+            <div className="flex items-center gap-1.5 font-[JetBrains_Mono] text-[10px] text-[#9ec5ff] whitespace-nowrap">
+              <Users className="w-3.5 h-3.5 text-[#4edea3] shrink-0" />
+              <span>CONTENDERS ({contenders.length})</span>
+            </div>
+            <div className="flex items-center gap-1 overflow-x-auto">
+              {contenders.length === 0 ? (
+                <span className="font-[JetBrains_Mono] text-[10px] text-[#7f92b8]">
+                  None yet
+                </span>
+              ) : (
+                contenders.slice(0, 4).map((ct) => (
+                  <TeamLogoBadge key={ct.id} team={ct} size="xs" />
+                ))
+              )}
+              {contenders.length > 4 && (
+                <span className="font-[JetBrains_Mono] text-[10px] font-bold text-[#fdb813] pl-0.5">
+                  +{contenders.length - 4}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Chronological Bid Ladder */}
+          <div
+            className="flex-1 min-h-0 overflow-y-auto custom-scroll space-y-2 pr-0.5"
+            data-testid="live-price-trail"
+          >
+            {reverseTrail.length === 0 ? (
+              <div className="h-full min-h-[160px] flex flex-col items-center justify-center text-center px-3">
+                <Zap className="w-7 h-7 text-[#fdb813]/70 mb-2" />
+                <div className="font-[Chakra_Petch] text-xs font-bold text-[#e6defe] uppercase">
+                  Waiting for Opening Bid
+                </div>
+                <p className="font-[JetBrains_Mono] text-[11px] text-[#9ec5ff] mt-1 leading-relaxed">
+                  Live bids from team paddles or the Bids Desk climb here in real time.
+                </p>
+              </div>
+            ) : (
+              reverseTrail.map((entry, idx) => {
+                const isLatest = idx === 0;
+                const tv = entry.teamView;
+                return (
+                  <div
+                    key={`${entry.team}-${entry.price}-${entry.bidNumber}`}
+                    className={`rounded-xl px-2.5 py-2 border flex items-center justify-between gap-2 transition-colors ${
+                      isLatest
+                        ? 'bg-[#172647] border-[#fdb813] shadow-[0_0_16px_rgba(253,184,19,0.16)]'
+                        : 'bg-[#121a32] border-[#253256]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span
+                        className={`font-[JetBrains_Mono] text-[10px] font-black w-5 text-center shrink-0 tabular-nums ${
+                          isLatest ? 'text-[#fdb813]' : 'text-[#8ea5ce]'
+                        }`}
+                      >
+                        #{entry.bidNumber}
+                      </span>
+                      {tv ? (
+                        <TeamLogoBadge team={tv} size="xs" />
+                      ) : (
+                        <div className="w-6 h-6 rounded bg-[#1d2a4d] flex items-center justify-center font-[JetBrains_Mono] text-[10px] font-bold text-white shrink-0">
+                          {entry.team.toUpperCase()}
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <div className="font-[Chakra_Petch] text-xs font-bold text-white truncate flex items-center gap-1">
+                          <span className="truncate">{tv?.name ?? entry.team}</span>
+                          {isLatest && (
+                            <Crown className="w-3 h-3 text-[#fdb813] shrink-0" />
+                          )}
+                        </div>
+                        <div className="font-[JetBrains_Mono] text-[10px] text-[#9ec5ff] flex items-center gap-1 truncate">
+                          <span>{tv?.paddle ?? entry.team.toUpperCase()}</span>
+                          {entry.delta > 0 && (
+                            <>
+                              <span aria-hidden="true">·</span>
+                              <span className="text-[#4edea3] font-bold inline-flex items-center">
+                                <ArrowUpRight className="w-2.5 h-2.5" />+₹{formatLakhs(entry.delta)}
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="text-right shrink-0">
+                      <div
+                        className={`font-[Antonio] font-bold text-lg tabular-nums leading-none whitespace-nowrap ${
+                          isLatest ? 'text-[#fdb813]' : 'text-[#e6defe]'
+                        }`}
+                      >
+                        ₹{formatLakhs(entry.price)}
+                      </div>
+                      {isLatest && (
+                        <div className="font-[JetBrains_Mono] text-[9px] font-bold text-[#4edea3] uppercase mt-0.5">
+                          LEADING
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </aside>
+
+        {/* CENTER HERO COLUMN (6 cols): Subject Header + Giant Live Price + Highest Bidder Spotlight */}
+        <section className="order-1 lg:order-2 col-span-12 lg:col-span-6 flex flex-col justify-between gap-3.5 min-h-0">
           {/* 1. Subject Bar + Live Countdown Progress */}
           <div className="bg-[#0f162b] border border-[#2a385e] rounded-xl px-4 py-3 flex flex-col gap-2.5 shrink-0">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3.5 min-w-0">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
                 <div className="w-14 h-14 rounded-lg border-2 border-[#fdb813]/70 overflow-hidden shrink-0 bg-[#141e38]">
                   <PlayerPortrait
                     player={lot.p}
@@ -229,7 +448,7 @@ export function ArenaLivePrice({
                   />
                 </div>
                 <div className="min-w-0">
-                  <div className="flex items-center gap-2 font-[JetBrains_Mono] text-xs text-[#9ec5ff] truncate">
+                  <div className="flex items-center gap-1.5 font-[JetBrains_Mono] text-[11px] text-[#9ec5ff] truncate">
                     <span className="font-bold text-[#fdb813]">{lot.p.id}</span>
                     <span aria-hidden="true">·</span>
                     <span>{CATEGORY_LABEL[lot.category]}</span>
@@ -237,12 +456,12 @@ export function ArenaLivePrice({
                     <span>{lot.p.country}</span>
                   </div>
                   <h1
-                    className="font-[Antonio] italic font-bold text-2xl sm:text-3xl lg:text-4xl text-white uppercase tracking-wide truncate leading-none mt-1 pr-2"
+                    className="font-[Antonio] italic font-bold text-2xl sm:text-3xl text-white uppercase tracking-wide truncate leading-none mt-1 pr-2"
                     data-testid="live-price-player-name"
                   >
                     {lot.p.name}
                   </h1>
-                  <div className="font-[JetBrains_Mono] text-xs text-[#b4cbe9] mt-1 truncate">
+                  <div className="font-[JetBrains_Mono] text-[11px] text-[#b4cbe9] mt-1 truncate">
                     {formatPlayerCardMeta(lot.p)}
                     {lot.p.titleTheme?.subFranchise
                       ? ` · Sub-Franchise: ${lot.p.titleTheme.subFranchise}`
@@ -257,7 +476,7 @@ export function ArenaLivePrice({
                   HAMMER TIMER
                 </div>
                 <div
-                  className={`font-[JetBrains_Mono] text-3xl sm:text-4xl lg:text-5xl font-black tabular-nums leading-none mt-0.5 flex items-center justify-end gap-2 ${
+                  className={`font-[JetBrains_Mono] text-2xl sm:text-3xl xl:text-4xl font-black tabular-nums leading-none mt-0.5 flex items-center justify-end gap-1.5 whitespace-nowrap ${
                     isUrgent
                       ? 'text-[#ffb4ab] animate-pulse'
                       : isWarning
@@ -266,7 +485,7 @@ export function ArenaLivePrice({
                   }`}
                   data-testid="live-price-countdown"
                 >
-                  <Clock className="w-6 h-6 sm:w-7 sm:h-7 shrink-0" />
+                  <Clock className="w-5 h-5 sm:w-6 sm:h-6 shrink-0" />
                   <span>{formatClock(remainingSec)}</span>
                 </div>
               </div>
@@ -290,7 +509,7 @@ export function ArenaLivePrice({
 
           {/* 2. HERO LIVE PRICE DISPLAY + GAMIFIED ESCALATION METER */}
           <div
-            className={`relative flex-1 min-h-0 rounded-2xl border-2 ${heat.borderColor} bg-gradient-to-br from-[#101830] via-[#0b1124] to-[#080d1c] px-6 py-5 flex flex-col justify-between overflow-hidden`}
+            className={`relative flex-1 min-h-0 rounded-2xl border-2 ${heat.borderColor} bg-gradient-to-br from-[#101830] via-[#0b1124] to-[#080d1c] px-5 py-5 flex flex-col justify-between overflow-hidden`}
           >
             {/* Subtle Radial Arena Spotlight */}
             <div
@@ -304,9 +523,9 @@ export function ArenaLivePrice({
             />
 
             {/* Top Row: Price Mode Header + Gamified Heat Level */}
-            <div className="relative z-10 flex items-center justify-between gap-4">
-              <div>
-                <div className="font-[Chakra_Petch] text-xs sm:text-sm font-bold uppercase tracking-[0.2em] text-[#9ec5ff]">
+            <div className="relative z-10 flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <div className="font-[Chakra_Petch] text-xs sm:text-sm font-bold uppercase tracking-[0.18em] text-[#9ec5ff] truncate">
                   {lot.bidCount > 0 ? 'CURRENT LIVE AUCTION PRICE' : 'OPENING BASE PRICE'}
                 </div>
                 <div className="font-[JetBrains_Mono] text-xs text-[#b4cbe9] mt-0.5 tabular-nums">
@@ -314,8 +533,8 @@ export function ArenaLivePrice({
                 </div>
               </div>
 
-              <div className="text-right" data-testid="live-price-heat">
-                <div className={`flex items-center justify-end gap-1.5 font-[Chakra_Petch] text-sm sm:text-base font-extrabold uppercase tracking-wider ${heat.accentText}`}>
+              <div className="text-right shrink-0" data-testid="live-price-heat">
+                <div className={`flex items-center justify-end gap-1.5 font-[Chakra_Petch] text-xs sm:text-sm font-extrabold uppercase tracking-wider whitespace-nowrap ${heat.accentText}`}>
                   <Flame className="w-4 h-4 shrink-0" />
                   <span>{heat.label}</span>
                 </div>
@@ -323,7 +542,7 @@ export function ArenaLivePrice({
                   {[1, 2, 3, 4, 5].map((bar) => (
                     <span
                       key={bar}
-                      className={`h-2 w-6 rounded-sm transition-colors ${
+                      className={`h-2 w-5 rounded-sm transition-colors ${
                         bar <= heat.level
                           ? heat.level >= 5
                             ? 'bg-[#ef4444]'
@@ -344,13 +563,13 @@ export function ArenaLivePrice({
 
             {/* Center Giant Live Price Readout */}
             <div className="relative z-10 flex flex-col items-center justify-center text-center my-auto py-2">
-              <div className="flex items-baseline justify-center gap-4 flex-wrap">
+              <div className="flex items-baseline justify-center gap-3 flex-wrap">
                 <span
-                  className={`font-[Antonio] italic font-bold tabular-nums leading-none tracking-tight text-[#fdb813] pr-3 transition-transform duration-200 ${
-                    bidPulse ? 'scale-[1.06]' : 'scale-100'
+                  className={`font-[Antonio] italic font-bold tabular-nums leading-none tracking-tight text-[#fdb813] pr-2 whitespace-nowrap transition-transform duration-200 ${
+                    bidPulse ? 'scale-[1.05]' : 'scale-100'
                   }`}
                   style={{
-                    fontSize: 'clamp(4rem, 9.2vw, 7.75rem)',
+                    fontSize: 'clamp(3.25rem, 6.2vw, 6.25rem)',
                     textShadow: bidPulse
                       ? '0 0 42px rgba(253, 184, 19, 0.72)'
                       : '0 0 26px rgba(253, 184, 19, 0.35)',
@@ -362,7 +581,7 @@ export function ArenaLivePrice({
 
                 {bidPulse && lastDeltaLakhs > 0 && (
                   <span
-                    className="font-[JetBrains_Mono] text-xl sm:text-2xl font-black text-[#4edea3] bg-[#00a572]/20 border border-[#4edea3]/60 px-3 py-1 rounded-lg animate-bounce"
+                    className="font-[JetBrains_Mono] text-lg sm:text-xl font-black text-[#4edea3] bg-[#00a572]/20 border border-[#4edea3]/60 px-2.5 py-1 rounded-lg animate-bounce whitespace-nowrap"
                     data-testid="live-price-delta"
                   >
                     +₹{formatLakhs(lastDeltaLakhs)}
@@ -371,16 +590,16 @@ export function ArenaLivePrice({
               </div>
 
               {/* Next Bid + Multiplier Strip */}
-              <div className="mt-4 w-full max-w-2xl flex flex-col gap-2">
-                <div className="flex items-center justify-between font-[JetBrains_Mono] text-xs sm:text-sm font-bold tabular-nums">
-                  <span className="text-[#9ec5ff]">
+              <div className="mt-4 w-full max-w-xl flex flex-col gap-2">
+                <div className="flex items-center justify-between gap-2 font-[JetBrains_Mono] text-[11px] sm:text-xs font-bold tabular-nums">
+                  <span className="text-[#9ec5ff] whitespace-nowrap">
                     BASE: ₹{formatLakhs(lot.p.base)}
                   </span>
-                  <span className="text-[#4edea3]">
+                  <span className="text-[#4edea3] whitespace-nowrap">
                     {surgeLakhs > 0 ? `+₹${formatLakhs(surgeLakhs)} SURGE` : 'AT BASE'} · {rateInfo.multiplier}x
                   </span>
-                  <span className="text-[#ffdb9f]">
-                    NEXT BID: ₹{formatLakhs(lot.next)}
+                  <span className="text-[#ffdb9f] whitespace-nowrap">
+                    NEXT: ₹{formatLakhs(lot.next)}
                   </span>
                 </div>
                 <div className="w-full h-3 rounded-full bg-[#172240] overflow-hidden border border-white/10">
@@ -420,53 +639,53 @@ export function ArenaLivePrice({
 
           {/* 3. HIGHEST BIDDER SPOTLIGHT BAR */}
           <div
-            className="bg-[#0f162b] border rounded-xl px-5 py-3.5 flex items-center justify-between gap-4 shrink-0 relative overflow-hidden"
+            className="bg-[#0f162b] border rounded-xl px-4 py-3 flex items-center justify-between gap-3 shrink-0 relative overflow-hidden"
             style={{ borderColor: leader ? `${leader.c}aa` : '#2a385e' }}
             data-testid="live-price-leader"
           >
             {leader ? (
               <>
-                <div className="flex items-center gap-4 min-w-0">
-                  <TeamLogoBadge team={leader} size="lg" />
+                <div className="flex items-center gap-3 min-w-0">
+                  <TeamLogoBadge team={leader} size="md" />
                   <div className="min-w-0">
-                    <div className="flex items-center gap-1.5 font-[Chakra_Petch] text-xs font-bold uppercase tracking-[0.18em] text-[#4edea3]">
+                    <div className="flex items-center gap-1.5 font-[Chakra_Petch] text-[11px] font-bold uppercase tracking-[0.16em] text-[#4edea3]">
                       <Trophy className="w-3.5 h-3.5 shrink-0" />
-                      <span>HIGHEST BIDDER HOLDING THE FLOOR</span>
+                      <span className="truncate">HIGHEST BIDDER HOLDING THE FLOOR</span>
                     </div>
-                    <div className="font-[Antonio] font-bold text-2xl sm:text-3xl text-white uppercase tracking-wide truncate leading-tight">
+                    <div className="font-[Antonio] font-bold text-xl sm:text-2xl text-white uppercase tracking-wide truncate leading-tight">
                       {leader.name}
                     </div>
-                    <div className="font-[JetBrains_Mono] text-xs text-[#b4cbe9] truncate">
+                    <div className="font-[JetBrains_Mono] text-[11px] text-[#b4cbe9] truncate">
                       {leader.slotLabel} · Paddle {leader.paddle} · Code {leader.short}
                       {leader.titleSubFranchise ? ` · ${leader.titleSubFranchise}` : ''}
                     </div>
                   </div>
                 </div>
                 <div className="text-right shrink-0">
-                  <div className="font-[JetBrains_Mono] text-[10px] text-[#9ec5ff] uppercase">
+                  <div className="font-[JetBrains_Mono] text-[10px] text-[#9ec5ff] uppercase whitespace-nowrap">
                     WINNING AT HAMMER
                   </div>
-                  <div className="font-[Antonio] font-bold text-2xl sm:text-3xl text-[#fdb813] tabular-nums">
+                  <div className="font-[Antonio] font-bold text-2xl sm:text-3xl text-[#fdb813] tabular-nums whitespace-nowrap">
                     ₹ {formatLakhs(lot.price)}
                   </div>
                 </div>
               </>
             ) : (
-              <div className="w-full flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-lg bg-[#16213f] border border-[#324372] flex items-center justify-center shrink-0">
+              <div className="w-full flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-10 h-10 rounded-lg bg-[#16213f] border border-[#324372] flex items-center justify-center shrink-0">
                     <Gavel className="w-5 h-5 text-[#fdb813]" />
                   </div>
-                  <div>
-                    <div className="font-[Chakra_Petch] text-xs font-bold uppercase tracking-[0.16em] text-[#9ec5ff]">
+                  <div className="min-w-0">
+                    <div className="font-[Chakra_Petch] text-[11px] font-bold uppercase tracking-[0.16em] text-[#9ec5ff]">
                       OPENING FLOOR
                     </div>
-                    <div className="font-[Antonio] font-bold text-xl sm:text-2xl text-white uppercase tracking-wide">
+                    <div className="font-[Antonio] font-bold text-lg sm:text-xl text-white uppercase tracking-wide truncate">
                       NO BIDS PLACED YET — READY FOR FIRST PADDLE
                     </div>
                   </div>
                 </div>
-                <div className="font-[JetBrains_Mono] text-sm font-bold text-[#fdb813] shrink-0 tabular-nums">
+                <div className="font-[JetBrains_Mono] text-xs sm:text-sm font-bold text-[#fdb813] shrink-0 tabular-nums whitespace-nowrap">
                   OPEN AT ₹{formatLakhs(lot.p.base)}
                 </div>
               </div>
@@ -474,127 +693,21 @@ export function ArenaLivePrice({
           </div>
         </section>
 
-        {/* RIGHT COLUMN (4 cols): LIVE BID ESCALATION LADDER & ACTIVE CONTENDERS */}
-        <aside className="col-span-12 lg:col-span-4 bg-[#0f162b] border border-[#2a385e] rounded-2xl p-4 flex flex-col gap-3 min-h-0">
-          <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-[#253256] shrink-0">
-            <div className="flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-[#fdb813]" />
-              <h2 className="font-[Chakra_Petch] text-sm font-extrabold uppercase tracking-wider text-white">
-                LIVE BID LADDER
+        {/* RIGHT COLUMN (3 cols): REMAINING AMOUNT FOR EACH TEAM (ALWAYS VISIBLE) */}
+        <aside className="order-2 lg:order-3 col-span-12 lg:col-span-3 bg-[#0f162b] border border-[#2a385e] rounded-2xl p-3 flex flex-col gap-2 min-h-0">
+          <div className="flex items-center justify-between gap-2 pb-2 border-b border-[#253256] shrink-0">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <Wallet className="w-4 h-4 text-[#fdb813] shrink-0" />
+              <h2 className="font-[Chakra_Petch] text-xs font-extrabold uppercase tracking-wider text-white truncate">
+                TEAM REMAINING PURSE
               </h2>
             </div>
-            <span className="font-[JetBrains_Mono] text-xs font-bold text-[#4edea3] tabular-nums">
-              {lot.bidCount} {lot.bidCount === 1 ? 'BID' : 'BIDS'}
+            <span className="font-[JetBrains_Mono] text-[11px] font-bold text-[#4edea3] tabular-nums whitespace-nowrap shrink-0">
+              {formatCurrency(vm.totals.remaining)} Left
             </span>
           </div>
 
-          {/* Contending Teams Strip */}
-          <div className="shrink-0 flex items-center justify-between gap-2 bg-[#141d38] border border-[#27365e] rounded-lg px-3 py-2">
-            <div className="flex items-center gap-1.5 font-[JetBrains_Mono] text-[11px] text-[#9ec5ff]">
-              <Users className="w-3.5 h-3.5 text-[#4edea3]" />
-              <span>CONTENDERS ({contenders.length})</span>
-            </div>
-            <div className="flex items-center gap-1 overflow-x-auto">
-              {contenders.length === 0 ? (
-                <span className="font-[JetBrains_Mono] text-[11px] text-[#7f92b8]">
-                  None yet
-                </span>
-              ) : (
-                contenders.slice(0, 5).map((ct) => (
-                  <TeamLogoBadge key={ct.id} team={ct} size="xs" />
-                ))
-              )}
-              {contenders.length > 5 && (
-                <span className="font-[JetBrains_Mono] text-[10px] font-bold text-[#fdb813] pl-1">
-                  +{contenders.length - 5}
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* Chronological Bid Ladder */}
-          <div
-            className="flex-1 min-h-0 overflow-y-auto custom-scroll space-y-2 pr-1"
-            data-testid="live-price-trail"
-          >
-            {reverseTrail.length === 0 ? (
-              <div className="h-full min-h-[180px] flex flex-col items-center justify-center text-center px-4">
-                <Zap className="w-8 h-8 text-[#fdb813]/70 mb-2" />
-                <div className="font-[Chakra_Petch] text-sm font-bold text-[#e6defe] uppercase">
-                  Waiting for Opening Bid
-                </div>
-                <p className="font-[JetBrains_Mono] text-xs text-[#9ec5ff] mt-1 leading-relaxed">
-                  Every bid submitted from team paddles or the Bids Desk climbs this live price ladder in real time.
-                </p>
-              </div>
-            ) : (
-              reverseTrail.map((entry, idx) => {
-                const isLatest = idx === 0;
-                const tv = entry.teamView;
-                return (
-                  <div
-                    key={`${entry.team}-${entry.price}-${entry.bidNumber}`}
-                    className={`rounded-xl px-3 py-2.5 border flex items-center justify-between gap-2.5 transition-colors ${
-                      isLatest
-                        ? 'bg-[#172647] border-[#fdb813] shadow-[0_0_20px_rgba(253,184,19,0.16)]'
-                        : 'bg-[#121a32] border-[#253256]'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <span
-                        className={`font-[JetBrains_Mono] text-[11px] font-black w-6 text-center shrink-0 tabular-nums ${
-                          isLatest ? 'text-[#fdb813]' : 'text-[#8ea5ce]'
-                        }`}
-                      >
-                        #{entry.bidNumber}
-                      </span>
-                      {tv ? (
-                        <TeamLogoBadge team={tv} size="sm" />
-                      ) : (
-                        <div className="w-9 h-7 rounded bg-[#1d2a4d] flex items-center justify-center font-[JetBrains_Mono] text-[11px] font-bold text-white">
-                          {entry.team.toUpperCase()}
-                        </div>
-                      )}
-                      <div className="min-w-0">
-                        <div className="font-[Chakra_Petch] text-sm font-bold text-white truncate flex items-center gap-1.5">
-                          <span className="truncate">{tv?.name ?? entry.team}</span>
-                          {isLatest && (
-                            <Crown className="w-3.5 h-3.5 text-[#fdb813] shrink-0" />
-                          )}
-                        </div>
-                        <div className="font-[JetBrains_Mono] text-[10px] text-[#9ec5ff] flex items-center gap-1.5">
-                          <span>{tv?.paddle ?? entry.team.toUpperCase()}</span>
-                          {entry.delta > 0 && (
-                            <>
-                              <span aria-hidden="true">·</span>
-                              <span className="text-[#4edea3] font-bold flex items-center">
-                                <ArrowUpRight className="w-3 h-3" />+₹{formatLakhs(entry.delta)}
-                              </span>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="text-right shrink-0">
-                      <div
-                        className={`font-[Antonio] font-bold text-xl sm:text-2xl tabular-nums leading-none ${
-                          isLatest ? 'text-[#fdb813]' : 'text-[#e6defe]'
-                        }`}
-                      >
-                        ₹{formatLakhs(entry.price)}
-                      </div>
-                      {isLatest && (
-                        <div className="font-[JetBrains_Mono] text-[9px] font-bold text-[#4edea3] uppercase mt-0.5">
-                          LEADING
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
+          <TeamRemainingPurseList rows={teamPurseRows} maxSquad={vm.cfg.max} />
         </aside>
       </main>
     );
@@ -612,122 +725,142 @@ export function ArenaLivePrice({
 
   return (
     <main
-      className="flex-1 min-h-0 overflow-hidden bg-[#090d1b] px-4 py-4 lg:px-8 lg:py-6 flex flex-col justify-center items-center"
+      className="flex-1 min-h-0 overflow-y-auto lg:overflow-hidden bg-[#090d1b] px-4 py-3 lg:px-6 lg:py-4 grid grid-cols-12 gap-4 items-stretch"
       data-testid="arena-live-price"
     >
-      <div className="w-full max-w-5xl bg-[#0f162b] border border-[#2a385e] rounded-2xl p-6 sm:p-8 flex flex-col gap-6">
-        <div className="flex items-center justify-between gap-4 border-b border-[#253256] pb-4 flex-wrap">
-          <div>
-            <div className="font-[Chakra_Petch] text-xs font-bold uppercase tracking-[0.2em] text-[#4edea3]">
-              LIVE PRICE BROADCAST
-            </div>
-            <h1 className="font-[Antonio] font-bold text-3xl sm:text-4xl text-white uppercase tracking-wide mt-1">
-              {lastOutcome
-                ? lastOutcome.t === 'SOLD'
-                  ? 'LAST HAMMER CONFIRMED'
-                  : 'LAST LOT PASSED TO UNSOLD'
-                : 'AWAITING NEXT LOT ON STAGE'}
-            </h1>
-          </div>
-
-          <div className="font-[JetBrains_Mono] text-xs text-[#9ec5ff] text-right">
+      {/* LEFT HERO COLUMN (8 cols): Last Hammer / Standby Live Price Board */}
+      <section className="col-span-12 lg:col-span-8 flex flex-col justify-center min-h-0">
+        <div className="w-full h-full bg-[#0f162b] border border-[#2a385e] rounded-2xl p-6 sm:p-8 flex flex-col justify-between gap-6">
+          <div className="flex items-center justify-between gap-4 border-b border-[#253256] pb-4 flex-wrap">
             <div>
-              {vm.counts.sold}/{vm.counts.playersTotal} PLAYERS SOLD · {vm.counts.titlesSold}/
-              {vm.counts.titlesTotal} TITLES
+              <div className="font-[Chakra_Petch] text-xs font-bold uppercase tracking-[0.2em] text-[#4edea3]">
+                LIVE PRICE BROADCAST
+              </div>
+              <h1 className="font-[Antonio] font-bold text-3xl sm:text-4xl text-white uppercase tracking-wide mt-1">
+                {lastOutcome
+                  ? lastOutcome.t === 'SOLD'
+                    ? 'LAST HAMMER CONFIRMED'
+                    : 'LAST LOT PASSED TO UNSOLD'
+                  : 'AWAITING NEXT LOT ON STAGE'}
+              </h1>
             </div>
-            <div className="text-[#fdb813] font-bold mt-0.5">
-              READY FOR LIVE BIDS
+
+            <div className="font-[JetBrains_Mono] text-xs text-[#9ec5ff] text-right tabular-nums">
+              <div>
+                {vm.counts.sold}/{vm.counts.playersTotal} PLAYERS SOLD · {vm.counts.titlesSold}/
+                {vm.counts.titlesTotal} TITLES
+              </div>
+              <div className="text-[#fdb813] font-bold mt-0.5">
+                READY FOR LIVE BIDS
+              </div>
             </div>
           </div>
-        </div>
 
-        {lastOutcome ? (
-          <div className="grid grid-cols-12 gap-5 items-center">
-            <div className="col-span-12 md:col-span-7 flex items-center gap-4 min-w-0">
-              <div className="w-20 h-20 rounded-xl border-2 border-[#fdb813]/70 overflow-hidden shrink-0 bg-[#141e38]">
-                <PlayerPortrait
-                  player={lastOutcome.p}
-                  teamShort={lastTeam?.short}
-                  size="lg"
-                  className="w-20 h-20"
-                />
+          {lastOutcome ? (
+            <div className="grid grid-cols-12 gap-5 items-center my-auto">
+              <div className="col-span-12 md:col-span-7 flex items-center gap-4 min-w-0">
+                <div className="w-20 h-20 rounded-xl border-2 border-[#fdb813]/70 overflow-hidden shrink-0 bg-[#141e38]">
+                  <PlayerPortrait
+                    player={lastOutcome.p}
+                    teamShort={lastTeam?.short}
+                    size="lg"
+                    className="w-20 h-20"
+                  />
+                </div>
+                <div className="min-w-0">
+                  <div className="font-[JetBrains_Mono] text-xs text-[#9ec5ff]">
+                    {lastOutcome.p.id} · {lastOutcome.p.deckName}
+                  </div>
+                  <div
+                    className="font-[Antonio] italic font-bold text-3xl sm:text-4xl text-white uppercase truncate mt-0.5"
+                    data-testid="live-price-player-name"
+                  >
+                    {lastOutcome.p.name}
+                  </div>
+                  {lastOutcome.t === 'SOLD' && lastTeam ? (
+                    <div className="flex items-center gap-2 mt-2">
+                      <TeamLogoBadge team={lastTeam} size="sm" />
+                      <span className="font-[Chakra_Petch] text-sm font-bold text-[#4edea3] uppercase">
+                        SOLD TO {lastTeam.name} ({lastTeam.short})
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="font-[Chakra_Petch] text-sm font-bold text-[#ffb4ab] uppercase mt-2">
+                      RETURNED TO UNSOLD POOL
+                    </div>
+                  )}
+                </div>
               </div>
-              <div className="min-w-0">
-                <div className="font-[JetBrains_Mono] text-xs text-[#9ec5ff]">
-                  {lastOutcome.p.id} · {lastOutcome.p.deckName}
+
+              <div className="col-span-12 md:col-span-5 text-left md:text-right">
+                <div className="font-[Chakra_Petch] text-xs font-bold uppercase tracking-[0.18em] text-[#9ec5ff]">
+                  {lastOutcome.t === 'SOLD' ? 'FINAL HAMMER PRICE' : 'RESERVE BASE PRICE'}
                 </div>
                 <div
-                  className="font-[Antonio] italic font-bold text-3xl sm:text-4xl text-white uppercase truncate mt-0.5"
-                  data-testid="live-price-player-name"
+                  className={`font-[Antonio] italic font-bold text-5xl sm:text-6xl tabular-nums leading-none mt-1 whitespace-nowrap ${
+                    lastOutcome.t === 'SOLD' ? 'text-[#fdb813]' : 'text-[#ffb4ab]'
+                  }`}
+                  data-testid="live-price-amount"
                 >
-                  {lastOutcome.p.name}
+                  ₹ {formatLakhs(lastPrice)}
                 </div>
-                {lastOutcome.t === 'SOLD' && lastTeam ? (
-                  <div className="flex items-center gap-2 mt-2">
-                    <TeamLogoBadge team={lastTeam} size="sm" />
-                    <span className="font-[Chakra_Petch] text-sm font-bold text-[#4edea3] uppercase">
-                      SOLD TO {lastTeam.name} ({lastTeam.short})
-                    </span>
-                  </div>
-                ) : (
-                  <div className="font-[Chakra_Petch] text-sm font-bold text-[#ffb4ab] uppercase mt-2">
-                    RETURNED TO UNSOLD POOL
-                  </div>
-                )}
+                <div className="font-[JetBrains_Mono] text-xs text-[#b4cbe9] mt-2 tabular-nums">
+                  Base {formatCurrency(lastOutcome.p.base)} ·{' '}
+                  {lastOutcome.t === 'SOLD'
+                    ? `${(lastPrice / Math.max(1, lastOutcome.p.base)).toFixed(2)}x Base`
+                    : 'No opening bid placed'}
+                </div>
               </div>
             </div>
-
-            <div className="col-span-12 md:col-span-5 text-left md:text-right">
-              <div className="font-[Chakra_Petch] text-xs font-bold uppercase tracking-[0.18em] text-[#9ec5ff]">
-                {lastOutcome.t === 'SOLD' ? 'FINAL HAMMER PRICE' : 'RESERVE BASE PRICE'}
-              </div>
+          ) : (
+            <div className="py-6 my-auto flex flex-col items-center text-center gap-2">
+              <Flame className="w-10 h-10 text-[#fdb813]" />
               <div
-                className={`font-[Antonio] italic font-bold text-5xl sm:text-6xl tabular-nums leading-none mt-1 ${
-                  lastOutcome.t === 'SOLD' ? 'text-[#fdb813]' : 'text-[#ffb4ab]'
-                }`}
+                className="font-[Antonio] font-bold text-5xl sm:text-6xl text-[#fdb813] tabular-nums whitespace-nowrap"
                 data-testid="live-price-amount"
               >
-                ₹ {formatLakhs(lastPrice)}
+                {nextPreview ? `₹ ${formatLakhs(nextPreview.base)}` : '₹ —'}
               </div>
-              <div className="font-[JetBrains_Mono] text-xs text-[#b4cbe9] mt-2 tabular-nums">
-                Base {formatCurrency(lastOutcome.p.base)} ·{' '}
-                {lastOutcome.t === 'SOLD'
-                  ? `${(lastPrice / Math.max(1, lastOutcome.p.base)).toFixed(2)}x Base`
-                  : 'No opening bid placed'}
+              <div className="font-[JetBrains_Mono] text-xs sm:text-sm text-[#b4cbe9]">
+                {nextPreview
+                  ? `Next up: ${nextPreview.name} (${nextPreview.id}) · Live price climbs automatically as bids are placed`
+                  : 'Waiting for Main Operator to send a player or franchise title to the floor'}
               </div>
             </div>
-          </div>
-        ) : (
-          <div className="py-6 flex flex-col items-center text-center gap-2">
-            <Flame className="w-10 h-10 text-[#fdb813]" />
-            <div
-              className="font-[Antonio] font-bold text-4xl sm:text-5xl text-[#fdb813] tabular-nums"
-              data-testid="live-price-amount"
-            >
-              {nextPreview ? `₹ ${formatLakhs(nextPreview.base)}` : '₹ —'}
-            </div>
-            <div className="font-[JetBrains_Mono] text-xs sm:text-sm text-[#b4cbe9]">
-              {nextPreview
-                ? `Next up: ${nextPreview.name} (${nextPreview.id}) · Live price climbs automatically as bids are placed`
-                : 'Waiting for Main Operator to send a player or franchise title to the floor'}
-            </div>
-          </div>
-        )}
+          )}
 
-        {upcomingStrip.length > 0 && (
-          <div className="border-t border-[#253256] pt-4 flex items-center justify-between gap-3 flex-wrap font-[JetBrains_Mono] text-xs">
-            <span className="text-[#9ec5ff] font-bold uppercase">ON DECK NEXT:</span>
-            <div className="flex items-center gap-3 flex-wrap">
-              {upcomingStrip.slice(0, 3).map((q, idx) => (
-                <span key={q.id} className="text-[#e6defe]">
-                  <strong className="text-[#fdb813]">#{idx + 1}</strong> {q.name} (
-                  {formatCurrency(q.base)})
-                </span>
-              ))}
+          {upcomingStrip.length > 0 && (
+            <div className="border-t border-[#253256] pt-4 flex items-center justify-between gap-3 flex-wrap font-[JetBrains_Mono] text-xs">
+              <span className="text-[#9ec5ff] font-bold uppercase">ON DECK NEXT:</span>
+              <div className="flex items-center gap-3 flex-wrap">
+                {upcomingStrip.slice(0, 3).map((q, idx) => (
+                  <span key={q.id} className="text-[#e6defe]">
+                    <strong className="text-[#fdb813]">#{idx + 1}</strong> {q.name} (
+                    {formatCurrency(q.base)})
+                  </span>
+                ))}
+              </div>
             </div>
+          )}
+        </div>
+      </section>
+
+      {/* RIGHT COLUMN (4 cols): REMAINING AMOUNT FOR EACH TEAM */}
+      <aside className="col-span-12 lg:col-span-4 bg-[#0f162b] border border-[#2a385e] rounded-2xl p-3.5 flex flex-col gap-2 min-h-0">
+        <div className="flex items-center justify-between gap-2 pb-2 border-b border-[#253256] shrink-0">
+          <div className="flex items-center gap-2 min-w-0">
+            <Wallet className="w-4 h-4 text-[#fdb813] shrink-0" />
+            <h2 className="font-[Chakra_Petch] text-sm font-extrabold uppercase tracking-wider text-white truncate">
+              TEAM REMAINING PURSE
+            </h2>
           </div>
-        )}
-      </div>
+          <span className="font-[JetBrains_Mono] text-[11px] font-bold text-[#4edea3] tabular-nums whitespace-nowrap shrink-0">
+            {formatCurrency(vm.totals.remaining)} Left
+          </span>
+        </div>
+
+        <TeamRemainingPurseList rows={teamPurseRows} maxSquad={vm.cfg.max} />
+      </aside>
     </main>
   );
 }

@@ -9,8 +9,19 @@ export const DASHBOARD_RULE = {
   wk: 1,
 } as const;
 
+export const DASHBOARD_SQUAD_TARGET = DASHBOARD_RULE.targetPlayers;
+
+export const DASHBOARD_ROLE_QUOTAS = {
+  bat: DASHBOARD_RULE.bat,
+  bowl: DASHBOARD_RULE.bowl,
+  ar: DASHBOARD_RULE.ar,
+  wk: DASHBOARD_RULE.wk,
+} as const;
+
 export type DashboardSortKey = 'overall' | 'pop' | 'bat' | 'bowl' | 'default';
+export type DashboardSortMetric = 'overall' | 'pop' | 'bat' | 'bowl';
 export type DashboardSortDir = 'desc' | 'asc';
+export type DashboardSortDirection = DashboardSortDir;
 export type DashboardFilterMode = 'all' | 'met' | 'incomplete';
 
 export interface RoleCounts {
@@ -33,13 +44,18 @@ export interface TeamDashboardMetrics {
   team: TeamView;
   slotIndex: number;
   counts: RoleCounts;
+  roles: RoleCounts;
+  squadCount: number;
   needs: RoleNeeds;
   mandatoryFilledSlots: number;
   mandatoryTotalSlots: number;
   progressSlots: number;
   progressPct: number;
   criteriaMet: boolean;
+  fullCriterionMet: boolean;
+  roleCriterionMet: boolean;
   needsSummary: string;
+  missingSummary: string;
   popAvg: number;
   batAvg: number;
   bowlAvg: number;
@@ -116,7 +132,7 @@ export function buildNeedsSummary(needs: RoleNeeds, totalPlayers: number): strin
   return `Need ${needs.playersRemaining} more player${needs.playersRemaining === 1 ? '' : 's'}`;
 }
 
-export function computeTeamDashboardMetrics(
+function computeSingleTeamDashboardMetrics(
   team: TeamView,
   slotIndex: number,
   playerLookup?: ReadonlyMap<string, Player>
@@ -148,12 +164,13 @@ export function computeTeamDashboardMetrics(
   );
   const progressPct = Math.round((progressSlots / DASHBOARD_RULE.targetPlayers) * 100);
 
-  const criteriaMet =
-    counts.total >= DASHBOARD_RULE.targetPlayers &&
+  const roleCriterionMet =
     needs.bat === 0 &&
     needs.bowl === 0 &&
     needs.ar === 0 &&
     needs.wk === 0;
+
+  const criteriaMet = counts.total >= DASHBOARD_RULE.targetPlayers && roleCriterionMet;
 
   let popAvg = 0;
   let batAvg = 0;
@@ -176,17 +193,24 @@ export function computeTeamDashboardMetrics(
     overallScore = (popAvg + batAvg + bowlAvg) / 3;
   }
 
+  const needsSummary = buildNeedsSummary(needs, counts.total);
+
   return {
     team,
     slotIndex,
     counts,
+    roles: counts,
+    squadCount: counts.total,
     needs,
     mandatoryFilledSlots,
     mandatoryTotalSlots,
     progressSlots,
     progressPct,
     criteriaMet,
-    needsSummary: buildNeedsSummary(needs, counts.total),
+    fullCriterionMet: criteriaMet,
+    roleCriterionMet,
+    needsSummary,
+    missingSummary: needsSummary,
     popAvg,
     batAvg,
     bowlAvg,
@@ -194,12 +218,55 @@ export function computeTeamDashboardMetrics(
   };
 }
 
+export function computeTeamDashboardMetrics(
+  teams: readonly TeamView[],
+  players: readonly Player[]
+): TeamDashboardMetrics[];
+export function computeTeamDashboardMetrics(
+  team: TeamView,
+  slotIndex: number,
+  playerLookup?: ReadonlyMap<string, Player>
+): TeamDashboardMetrics;
+export function computeTeamDashboardMetrics(
+  teamOrTeams: TeamView | readonly TeamView[],
+  slotIndexOrPlayers: number | readonly Player[],
+  playerLookup?: ReadonlyMap<string, Player>
+): TeamDashboardMetrics | TeamDashboardMetrics[] {
+  if (Array.isArray(teamOrTeams)) {
+    const players = Array.isArray(slotIndexOrPlayers) ? slotIndexOrPlayers : [];
+    const lookup = new Map<string, Player>(players.map((p) => [p.id, p]));
+    return teamOrTeams.map((team, idx) => computeSingleTeamDashboardMetrics(team, idx, lookup));
+  }
+  return computeSingleTeamDashboardMetrics(
+    teamOrTeams as TeamView,
+    typeof slotIndexOrPlayers === 'number' ? slotIndexOrPlayers : 0,
+    playerLookup
+  );
+}
+
 export function buildAllTeamDashboardMetrics(
   teams: readonly TeamView[],
   players: readonly Player[]
 ): TeamDashboardMetrics[] {
-  const playerLookup = new Map<string, Player>(players.map((p) => [p.id, p]));
-  return teams.map((team, idx) => computeTeamDashboardMetrics(team, idx, playerLookup));
+  return computeTeamDashboardMetrics(teams, players);
+}
+
+export function countTeamsMeetingCriteria(items: readonly TeamDashboardMetrics[]): {
+  fullMetCount: number;
+  roleMetCount: number;
+  totalTeams: number;
+} {
+  let fullMetCount = 0;
+  let roleMetCount = 0;
+  for (const item of items) {
+    if (item.fullCriterionMet) fullMetCount += 1;
+    if (item.roleCriterionMet) roleMetCount += 1;
+  }
+  return {
+    fullMetCount,
+    roleMetCount,
+    totalTeams: items.length,
+  };
 }
 
 export function filterDashboardTeams(
@@ -254,6 +321,14 @@ export function sortDashboardTeams(
     return a.slotIndex - b.slotIndex;
   });
   return copy;
+}
+
+export function sortTeamDashboardMetrics(
+  items: readonly TeamDashboardMetrics[],
+  sortBy: DashboardSortMetric,
+  sortDir: DashboardSortDirection
+): TeamDashboardMetrics[] {
+  return sortDashboardTeams(items, sortBy, sortDir);
 }
 
 export function formatRatingAvg(value: number): string {

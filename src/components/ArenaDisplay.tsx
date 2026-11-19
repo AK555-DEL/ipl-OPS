@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   AlertCircle,
+  ArrowDown,
+  ArrowUp,
   BarChart3,
   CheckCircle2,
   Clock,
@@ -33,10 +35,19 @@ import { GlobalSoundControl } from './GlobalSoundControl.tsx';
 import { PlayerPortrait } from './PlayerPortrait.tsx';
 import { StagePlayerCard } from './StagePlayerCard.tsx';
 import { ArenaLivePrice } from './ArenaLivePrice.tsx';
-import { ArenaLeaderboardView } from './ArenaLeaderboardView.tsx';
-import { TeamLogoBadge } from './TeamLogoBadge.tsx';
+import { PlayerTeamLogoPill, TeamLogoBadge } from './TeamLogoBadge.tsx';
 import { useAuctionAudioCues } from '../hooks/useAuctionAudioCues.ts';
 import { resolveStageHoldPlayer } from '../utils/stageCard.ts';
+import {
+  DASHBOARD_ROLE_QUOTAS,
+  DASHBOARD_SQUAD_TARGET,
+  computeTeamDashboardMetrics,
+  countTeamsMeetingCriteria,
+  formatRatingAvg,
+  sortTeamDashboardMetrics,
+  type DashboardSortDirection,
+  type DashboardSortMetric,
+} from '../utils/arenaDashboard.ts';
 
 interface ArenaDisplayProps {
   vm: AuctionViewModel;
@@ -109,6 +120,8 @@ export function ArenaDisplay({
   const [dashTab, setDashTab] = useState<'teams' | 'players'>('teams');
   const [dashDeckFilter, setDashDeckFilter] = useState<number | 'ALL'>('ALL');
   const [dashQuery, setDashQuery] = useState('');
+  const [dashSortMetric, setDashSortMetric] = useState<DashboardSortMetric>('overall');
+  const [dashSortDir, setDashSortDir] = useState<DashboardSortDirection>('desc');
 
   const [nowMs, setNowMs] = useState(() => Date.now());
 
@@ -240,6 +253,30 @@ export function ArenaDisplay({
     vm.last?.t === 'SOLD' && vm.last.team
       ? vm.teams.find((t) => t.id === vm.last?.team) ?? null
       : null;
+
+  const teamMetrics = useMemo(
+    () => computeTeamDashboardMetrics(vm.teams, players),
+    [vm.teams, players]
+  );
+
+  const sortedTeamMetrics = useMemo(
+    () => sortTeamDashboardMetrics(teamMetrics, dashSortMetric, dashSortDir),
+    [teamMetrics, dashSortMetric, dashSortDir]
+  );
+
+  const criteriaSummary = useMemo(
+    () => countTeamsMeetingCriteria(teamMetrics),
+    [teamMetrics]
+  );
+
+  const handleMetricSelect = (metric: DashboardSortMetric) => {
+    if (dashSortMetric === metric) {
+      setDashSortDir((prev) => (prev === 'desc' ? 'asc' : 'desc'));
+    } else {
+      setDashSortMetric(metric);
+      setDashSortDir('desc');
+    }
+  };
 
   const handleArenaPinUnlock = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -922,10 +959,10 @@ export function ArenaDisplay({
   // =========================================================================
   return (
     <div
-      className="w-full min-h-screen md:h-screen md:overflow-hidden overflow-x-hidden flex flex-col bg-[#141026] text-[#e6defe] select-none"
+      className="w-screen h-screen overflow-hidden flex flex-col bg-[#141026] text-[#e6defe] select-none"
       data-testid="arena-dashboard"
     >
-      <header className="flex flex-wrap justify-between items-center w-full px-3.5 py-2 border-b border-[#504533] bg-[#0e0b21] shrink-0 gap-2">
+      <header className="flex justify-between items-center w-full px-3.5 py-2 border-b border-[#504533] bg-[#0e0b21] shrink-0 gap-2">
         <div className="flex items-center gap-2 min-w-0 shrink-0">
           <div className="flex items-center gap-1.5 bg-[#201d33] px-2 py-1 rounded border border-[#504533] whitespace-nowrap shrink-0">
             <span
@@ -936,7 +973,7 @@ export function ArenaDisplay({
               {lot ? 'LOT LIVE' : connected ? 'ARENA' : 'SYNC'}
             </span>
           </div>
-          <h1 className="font-[Space_Grotesk] text-xs sm:text-sm uppercase tracking-wider text-[#ffdb9f] font-bold whitespace-nowrap truncate">
+          <h1 className="font-[Space_Grotesk] text-sm uppercase tracking-wider text-[#ffdb9f] font-bold whitespace-nowrap">
             IPL AUCTION // ARENA DASHBOARD
           </h1>
         </div>
@@ -965,7 +1002,7 @@ export function ArenaDisplay({
           </button>
         ) : null}
 
-        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap max-w-full">{headerControls}</div>
+        <div className="flex items-center gap-2 shrink-0">{headerControls}</div>
       </header>
 
       {/* Most Recent Player Sold Spotlight + Stage & OS Summary */}
@@ -1115,7 +1152,302 @@ export function ArenaDisplay({
       </div>
 
       {dashTab === 'teams' ? (
-        <ArenaLeaderboardView teams={vm.teams} players={players} cfg={vm.cfg} />
+        /* 11-TEAM LEADERBOARD & SQUAD PROGRESS GRID */
+        <main className="flex-1 flex flex-col min-h-0 overflow-hidden">
+          {/* Leaderboard Criteria Progress & Two-Way Sorting Controls */}
+          <div
+            className="w-full bg-[#19152c] border-b border-[#504533] px-3.5 py-2 flex items-center justify-between gap-2.5 flex-wrap shrink-0"
+            data-testid="dashboard-leaderboard-controls"
+          >
+            <div className="flex items-center gap-2 flex-wrap font-[JetBrains_Mono] text-[10px]">
+              <span className="px-2 py-1 rounded bg-[#141026] border border-[#504533] text-[#ffdb9f] font-bold">
+                RULE: {DASHBOARD_SQUAD_TARGET} PLAYERS · BAT {DASHBOARD_ROLE_QUOTAS.bat} | BOWL {DASHBOARD_ROLE_QUOTAS.bowl} | AR {DASHBOARD_ROLE_QUOTAS.ar} | WK {DASHBOARD_ROLE_QUOTAS.wk}
+              </span>
+              <span
+                className={`px-2 py-1 rounded border font-bold ${
+                  criteriaSummary.fullMetCount === criteriaSummary.totalTeams
+                    ? 'bg-[#00a572]/25 border-[#4edea3] text-[#4edea3]'
+                    : 'bg-[#141026] border-[#4edea3]/45 text-[#4edea3]'
+                }`}
+                data-testid="dashboard-criteria-counter"
+              >
+                {criteriaSummary.fullMetCount}/{criteriaSummary.totalTeams} TEAMS COMPLETE
+              </span>
+              <span className="hidden sm:inline-block px-2 py-1 rounded bg-[#141026] border border-[#504533] text-[#d5c4ac]">
+                {criteriaSummary.roleMetCount}/{criteriaSummary.totalTeams} ROLES MET
+              </span>
+            </div>
+
+            <div className="flex items-center gap-1.5 flex-wrap font-[JetBrains_Mono] text-[10px]">
+              <span className="text-[#9d8f79] font-bold uppercase mr-0.5">SORT:</span>
+              {(
+                [
+                  ['overall', 'Overall Score'],
+                  ['pop', 'Popularity Avg'],
+                  ['bat', 'Batting Avg'],
+                  ['bowl', 'Bowling Avg'],
+                ] as const
+              ).map(([key, label]) => {
+                const active = dashSortMetric === key;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => handleMetricSelect(key)}
+                    aria-pressed={active}
+                    data-testid={`dash-sort-${key}`}
+                    className={`px-2.5 py-1 rounded border font-bold flex items-center gap-1 transition-colors whitespace-nowrap ${
+                      active
+                        ? 'bg-[#fdb813] text-[#271900] border-[#fdb813]'
+                        : 'bg-[#141026] text-[#d5c4ac] border-[#504533] hover:border-[#fdb813]'
+                    }`}
+                  >
+                    <span>{label}</span>
+                    {active &&
+                      (dashSortDir === 'desc' ? (
+                        <ArrowDown className="w-3 h-3" />
+                      ) : (
+                        <ArrowUp className="w-3 h-3" />
+                      ))}
+                  </button>
+                );
+              })}
+
+              <button
+                type="button"
+                onClick={() =>
+                  setDashSortDir((prev) => (prev === 'desc' ? 'asc' : 'desc'))
+                }
+                data-testid="dash-sort-direction"
+                aria-label={
+                  dashSortDir === 'desc'
+                    ? 'Sorted Highest to Lowest. Click to sort Lowest to Highest'
+                    : 'Sorted Lowest to Highest. Click to sort Highest to Lowest'
+                }
+                className="px-2.5 py-1 rounded border border-[#4edea3]/60 bg-[#00a572]/15 hover:bg-[#00a572]/25 text-[#4edea3] font-bold flex items-center gap-1 transition-colors whitespace-nowrap"
+              >
+                {dashSortDir === 'desc' ? (
+                  <>
+                    <ArrowDown className="w-3 h-3" />
+                    <span>High → Low</span>
+                  </>
+                ) : (
+                  <>
+                    <ArrowUp className="w-3 h-3" />
+                    <span>Low → High</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+
+          <div
+            className="flex-1 overflow-y-auto custom-scroll p-2.5 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-6 gap-2.5 content-start"
+            data-testid="dashboard-teams-grid"
+          >
+            {sortedTeamMetrics.map((m, rankIdx) => {
+              const t = m.team;
+              return (
+                <section
+                  key={t.id}
+                  data-testid={`dashboard-team-${t.id}`}
+                  className="bg-[#0e0b21] border border-[#504533] rounded-lg flex flex-col overflow-hidden h-[292px]"
+                >
+                  <div className="p-2 bg-[#1c192f] border-b border-[#504533] relative shrink-0 space-y-1.5">
+                    <div
+                      className="absolute left-0 top-0 bottom-0 w-1"
+                      style={{ backgroundColor: t.c }}
+                    />
+
+                    {/* Team Identity + Rank + 12-Player & OS Counters */}
+                    <div className="flex items-center justify-between gap-1.5 pl-1">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <span className="px-1 py-0.5 rounded bg-[#141026] border border-[#504533] font-[JetBrains_Mono] text-[9px] font-bold text-[#fdb813] tabular-nums shrink-0">
+                          #{rankIdx + 1}
+                        </span>
+                        <TeamLogoBadge team={t} size="xs" />
+                        <div className="min-w-0">
+                          <h2 className="font-[Space_Grotesk] text-xs font-bold text-[#e6defe] truncate leading-tight">
+                            {t.name}
+                          </h2>
+                          <div className="font-[JetBrains_Mono] text-[9px] text-[#9d8f79] flex items-center gap-1 truncate">
+                            <span>{t.paddle}</span>
+                            {t.titleSubFranchise ? (
+                              <span className="text-[#4edea3] font-bold truncate">
+                                · Sub: {t.titleSubFranchise.split(' · ')[0]}
+                              </span>
+                            ) : t.titleId ? (
+                              <span className="text-[#fdb813] font-bold flex items-center gap-0.5">
+                                · <Crown className="w-2.5 h-2.5" /> {t.short}
+                              </span>
+                            ) : null}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <div
+                          className={`font-[JetBrains_Mono] text-[11px] font-bold tabular-nums ${
+                            m.fullCriterionMet ? 'text-[#4edea3]' : 'text-[#ffdb9f]'
+                          }`}
+                        >
+                          {m.squadCount}/{DASHBOARD_SQUAD_TARGET}
+                        </div>
+                        <div className="font-[JetBrains_Mono] text-[9px] text-[#9d8f79] tabular-nums">
+                          OS {t.os}/{vm.cfg.os}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Progress Bar Directly Below Team Name */}
+                    <div
+                      className="pl-1 space-y-1"
+                      data-testid={`team-progress-${t.id}`}
+                    >
+                      <div className="flex items-center justify-between gap-1.5 font-[JetBrains_Mono] text-[9px]">
+                        <span
+                          className={`truncate font-semibold ${
+                            m.fullCriterionMet
+                              ? 'text-[#4edea3]'
+                              : m.roleCriterionMet
+                                ? 'text-[#ffdb9f]'
+                                : 'text-[#d5c4ac]'
+                          }`}
+                          title={m.missingSummary}
+                        >
+                          {m.missingSummary}
+                        </span>
+                        <span className="text-[#9d8f79] font-bold tabular-nums shrink-0">
+                          {m.progressPct}%
+                        </span>
+                      </div>
+                      <div
+                        className="w-full h-1.5 rounded-full bg-[#141026] border border-[#504533]/70 overflow-hidden"
+                        role="progressbar"
+                        aria-label={`${t.name} 12-player progress`}
+                        aria-valuenow={m.squadCount}
+                        aria-valuemin={0}
+                        aria-valuemax={DASHBOARD_SQUAD_TARGET}
+                      >
+                        <div
+                          className={`h-full transition-all duration-300 ${
+                            m.fullCriterionMet
+                              ? 'bg-[#4edea3]'
+                              : m.squadCount > 0
+                                ? 'bg-[#fdb813]'
+                                : 'bg-[#504533]/40'
+                          }`}
+                          style={{ width: `${m.progressPct}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Live Squad Composition Breakdown: BAT | BOWL | AR | WK */}
+                    <div
+                      className="pl-1 flex items-center justify-between gap-1 font-[JetBrains_Mono] text-[9px]"
+                      data-testid={`team-roles-${t.id}`}
+                    >
+                      {(
+                        [
+                          ['BAT', m.roles.bat, DASHBOARD_ROLE_QUOTAS.bat],
+                          ['BOWL', m.roles.bowl, DASHBOARD_ROLE_QUOTAS.bowl],
+                          ['AR', m.roles.ar, DASHBOARD_ROLE_QUOTAS.ar],
+                          ['WK', m.roles.wk, DASHBOARD_ROLE_QUOTAS.wk],
+                        ] as const
+                      ).map(([code, count, req]) => {
+                        const met = count >= req;
+                        return (
+                          <span
+                            key={code}
+                            title={`${code}: ${count} bought (mandatory min ${req})`}
+                            className={`flex-1 text-center px-1 py-0.5 rounded border tabular-nums font-bold ${
+                              met
+                                ? 'bg-[#00a572]/20 border-[#4edea3]/60 text-[#4edea3]'
+                                : 'bg-[#141026] border-[#504533] text-[#ffdb9f]'
+                            }`}
+                          >
+                            {code}: {count}
+                          </span>
+                        );
+                      })}
+                      {m.fullCriterionMet && (
+                        <CheckCircle2 className="w-3.5 h-3.5 text-[#4edea3] shrink-0" />
+                      )}
+                    </div>
+
+                    {/* Team Average Ratings & Composite Overall Score */}
+                    <div
+                      className="pl-1 grid grid-cols-4 gap-1 font-[JetBrains_Mono] text-[9px]"
+                      data-testid={`team-ratings-${t.id}`}
+                    >
+                      {(
+                        [
+                          ['overall', 'OVR', m.overallScore],
+                          ['pop', 'POP', m.popAvg],
+                          ['bat', 'BAT', m.batAvg],
+                          ['bowl', 'BOWL', m.bowlAvg],
+                        ] as const
+                      ).map(([metricKey, label, value]) => {
+                        const active = dashSortMetric === metricKey;
+                        return (
+                          <div
+                            key={metricKey}
+                            className={`rounded border px-1 py-0.5 text-center tabular-nums ${
+                              active
+                                ? 'bg-[#fdb813]/15 border-[#fdb813]/80 text-[#fdb813]'
+                                : 'bg-[#141026]/90 border-[#504533]/70 text-[#d5c4ac]'
+                            }`}
+                          >
+                            <span className="block text-[8px] opacity-80 leading-none">
+                              {label}
+                            </span>
+                            <span className="font-bold text-[10px] leading-tight">
+                              {formatRatingAvg(value)}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="flex-1 overflow-y-auto custom-scroll p-2 space-y-1.5">
+                    {t.squad.length === 0 ? (
+                      <div className="h-full flex flex-col items-center justify-center text-center p-2 font-[JetBrains_Mono] text-[10px] text-[#9d8f79]">
+                        <span>No players acquired yet</span>
+                        <span className="text-[9px] opacity-75 mt-0.5">
+                          {t.titleId
+                            ? `Franchise: ${t.name}${t.titleSubFranchise ? ` (${t.titleSubFranchise.split(' · ')[0]})` : ''}`
+                            : 'Awaiting Franchise & Player signings'}
+                        </span>
+                      </div>
+                    ) : (
+                      t.squad.map((p) => (
+                        <div
+                          key={p.id}
+                          className="bg-[#1c192f]/80 border border-[#36324a] rounded px-2.5 py-1.5 flex items-center justify-between gap-2"
+                        >
+                          <div className="flex items-center gap-2 min-w-0">
+                            <PlayerTeamLogoPill teamShort={t.short} teamName={t.name} size="sm" />
+                            <div className="min-w-0">
+                              <div className="font-[Space_Grotesk] text-xs font-bold text-[#e6defe] truncate">
+                                {p.name}
+                              </div>
+                              <div className="font-[JetBrains_Mono] text-[10px] text-[#4edea3] truncate">
+                                {formatPlayerCardMeta(p)}
+                              </div>
+                            </div>
+                          </div>
+                          <span className="font-[JetBrains_Mono] text-[11px] font-bold text-[#fdb813] shrink-0">
+                            {formatCurrency(p.price)}
+                          </span>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </section>
+              );
+            })}
+          </div>
+        </main>
       ) : (
         /* ALL PLAYERS & DECKS DATA TABLE */
         <main
@@ -1253,18 +1585,18 @@ export function ArenaDisplay({
         </main>
       )}
 
-      <footer className="min-h-9 py-1.5 bg-[#0e0b21] border-t border-[#504533] px-4 sm:px-5 flex items-center justify-between gap-2 shrink-0 font-[JetBrains_Mono] text-[10px] sm:text-[11px] text-[#d5c4ac]">
-        <div className="flex items-center gap-2 whitespace-nowrap">
-          <Verified className="w-3.5 h-3.5 text-[#4edea3] shrink-0" />
+      <footer className="h-9 bg-[#0e0b21] border-t border-[#504533] px-5 flex items-center justify-between shrink-0 font-[JetBrains_Mono] text-[11px] text-[#d5c4ac]">
+        <div className="flex items-center gap-2">
+          <Verified className="w-3.5 h-3.5 text-[#4edea3]" />
           <span className="text-[#e6defe] font-semibold">
             {connected ? 'ARENA DASHBOARD LIVE' : 'RECONNECTING'}
           </span>
         </div>
-        <div className="flex items-center gap-3 shrink-0">
-          <span className="hidden md:inline text-[#9d8f79] font-bold">
+        <div className="flex items-center gap-3">
+          <span className="text-[#9d8f79] font-bold">
             MANUAL FUNDS MODE · DASHBOARD &amp; STAGE SEPARATED
           </span>
-          <span className="bg-[#201d33] px-2 py-0.5 rounded border border-[#504533] text-[#ffdb9f] font-bold whitespace-nowrap">
+          <span className="bg-[#201d33] px-2 py-0.5 rounded border border-[#504533] text-[#ffdb9f] font-bold">
             CLUB EVENT EDITION
           </span>
         </div>

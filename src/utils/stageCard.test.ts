@@ -11,6 +11,7 @@ import {
   parsePlayersCsv,
 } from '../auction/engine.ts';
 import {
+  buildTeamPurseRows,
   computeBiddingRateInfo,
   formatBasePriceShort,
   formatStageCardFields,
@@ -136,4 +137,39 @@ test('computeBiddingRateInfo tracks highest bidder, multiplier, and bid rate, an
   events = executeCommand(events, allLots, pidMap, 'MEGA', { type: 'custom', team: 't1', price: 2000 }, 66_000);
   vm = buildViewModel(events, allLots, pidMap, 'MEGA', 66_000);
   assert.equal(computeBiddingRateInfo(vm.lot!, vm.teams, 66_000).incrementLakhs, 200);
+});
+
+test('buildTeamPurseRows returns remaining purse for all 11 teams, tracks live leader projection, and updates after sale', () => {
+  const initialVm = buildViewModel([], allLots, pidMap, 'MEGA', 1_000);
+  const initialRows = buildTeamPurseRows(initialVm.teams, initialVm.lot);
+  assert.equal(initialRows.length, 11);
+  for (const row of initialRows) {
+    assert.equal(row.remainingLakhs, 12000);
+    assert.equal(row.remainingPct, 100);
+    assert.equal(row.isLeading, false);
+    assert.equal(row.projectedAfterBidLakhs, null);
+  }
+
+  let events = executeCommand([], allLots, pidMap, 'MEGA', { type: 'next', pid: 'IPL-001' }, 10_000);
+  events = executeCommand(events, allLots, pidMap, 'MEGA', { type: 'bid', team: 't1' }, 12_000);
+  events = executeCommand(events, allLots, pidMap, 'MEGA', { type: 'bid', team: 't2' }, 14_000);
+
+  const liveVm = buildViewModel(events, allLots, pidMap, 'MEGA', 15_000);
+  const liveRows = buildTeamPurseRows(liveVm.teams, liveVm.lot);
+  const t2Live = liveRows.find((r) => r.team.id === 't2')!;
+  const t1Live = liveRows.find((r) => r.team.id === 't1')!;
+  assert.equal(t2Live.isLeading, true);
+  assert.equal(t2Live.remainingLakhs, 12000);
+  assert.equal(t2Live.projectedAfterBidLakhs, 12000 - liveVm.lot!.price);
+  assert.equal(t1Live.isLeading, false);
+  assert.equal(t1Live.projectedAfterBidLakhs, null);
+
+  events = executeCommand(events, allLots, pidMap, 'MEGA', { type: 'sold' }, 18_000);
+  const soldVm = buildViewModel(events, allLots, pidMap, 'MEGA', 19_000);
+  const soldRows = buildTeamPurseRows(soldVm.teams, soldVm.lot);
+  const t2Sold = soldRows.find((r) => r.team.id === 't2')!;
+  assert.equal(t2Sold.isLeading, false);
+  assert.equal(t2Sold.projectedAfterBidLakhs, null);
+  assert.equal(t2Sold.remainingLakhs, 12000 - liveVm.lot!.price);
+  assert.ok(t2Sold.remainingPct < 100);
 });

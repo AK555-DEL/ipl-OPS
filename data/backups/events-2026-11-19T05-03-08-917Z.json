@@ -1,0 +1,1 @@
+{"preset":"MEGA","events":[{"t":"CALL","pid":"IPL-001","ts":1795064582435},{"t":"BID","team":"t1","price":200,"ts":1795064582448},{"t":"BID","team":"t2","price":225,"ts":1795064582456},{"t":"SOLD","pid":"IPL-001","team":"t2","price":225,"ts":1795064587097}]}

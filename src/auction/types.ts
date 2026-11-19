@@ -63,10 +63,6 @@ export interface BriefPlayer {
   wk?: boolean;
   base: number;
   inc: number;
-  pop?: number;
-  bat?: number;
-  bowl?: number;
-  keep?: number;
   ovr: number;
   photo: string;
   hasPhoto?: boolean;

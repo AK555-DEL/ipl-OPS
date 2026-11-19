@@ -209,3 +209,35 @@ export function computeBiddingRateInfo(
     leaderTeam,
   };
 }
+
+export interface TeamPurseRow {
+  team: TeamView;
+  remainingLakhs: number;
+  startLakhs: number;
+  remainingPct: number;
+  isLeading: boolean;
+  projectedAfterBidLakhs: number | null;
+}
+
+export function buildTeamPurseRows(
+  teams: TeamView[],
+  activeLot: LotView | null
+): TeamPurseRow[] {
+  return teams.map((team) => {
+    const startLakhs = Math.max(1, team.start);
+    const remainingLakhs = Math.max(0, team.purse);
+    const remainingPct = Math.max(0, Math.min(100, Math.round((remainingLakhs / startLakhs) * 100)));
+    const isLeading = Boolean(activeLot && activeLot.team === team.id);
+    const projectedAfterBidLakhs =
+      isLeading && activeLot ? Math.max(0, remainingLakhs - activeLot.price) : null;
+
+    return {
+      team,
+      remainingLakhs,
+      startLakhs,
+      remainingPct,
+      isLeading,
+      projectedAfterBidLakhs,
+    };
+  });
+}
