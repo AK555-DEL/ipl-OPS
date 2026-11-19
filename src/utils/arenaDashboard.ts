@@ -24,11 +24,14 @@ export type DashboardSortDir = 'desc' | 'asc';
 export type DashboardSortDirection = DashboardSortDir;
 export type DashboardFilterMode = 'all' | 'met' | 'incomplete';
 
-export interface RoleCounts {
+export interface RoleBreakdown {
   bat: number;
   bowl: number;
   ar: number;
   wk: number;
+}
+
+export interface RoleCounts extends RoleBreakdown {
   total: number;
 }
 
@@ -40,13 +43,19 @@ export interface RoleNeeds {
   playersRemaining: number;
 }
 
+export interface NeededRoles extends RoleBreakdown {
+  total: number;
+}
+
 export interface TeamDashboardMetrics {
   team: TeamView;
   slotIndex: number;
   counts: RoleCounts;
-  roles: RoleCounts;
+  roles: RoleBreakdown;
   squadCount: number;
+  targetCount: number;
   needs: RoleNeeds;
+  neededRoles: NeededRoles;
   mandatoryFilledSlots: number;
   mandatoryTotalSlots: number;
   progressSlots: number;
@@ -67,8 +76,8 @@ function getMetric(
   field: 'pop' | 'bat' | 'bowl',
   playerLookup?: ReadonlyMap<string, Player>
 ): number {
-  const direct = sp[field];
-  if (typeof direct === 'number' && Number.isFinite(direct)) return direct;
+  const candidate = (sp as Partial<Record<'pop' | 'bat' | 'bowl', unknown>>)[field];
+  if (typeof candidate === 'number' && Number.isFinite(candidate)) return candidate;
   const full = playerLookup?.get(sp.id);
   if (full && typeof full[field] === 'number' && Number.isFinite(full[field])) {
     return full[field];
@@ -187,21 +196,41 @@ function computeSingleTeamDashboardMetrics(
       sumBowl += getMetric(sp, 'bowl', playerLookup);
     }
     const n = team.squad.length;
-    popAvg = sumPop / n;
-    batAvg = sumBat / n;
-    bowlAvg = sumBowl / n;
-    overallScore = (popAvg + batAvg + bowlAvg) / 3;
+    popAvg = Math.round((sumPop / n) * 10) / 10;
+    batAvg = Math.round((sumBat / n) * 10) / 10;
+    bowlAvg = Math.round((sumBowl / n) * 10) / 10;
+    overallScore = Math.round(((popAvg + batAvg + bowlAvg) / 3) * 10) / 10;
   }
 
   const needsSummary = buildNeedsSummary(needs, counts.total);
+  const missingSummary = criteriaMet
+    ? `${counts.total}/${DASHBOARD_RULE.targetPlayers} · Rules Met`
+    : needsSummary;
+
+  const roles: RoleBreakdown = {
+    bat: counts.bat,
+    bowl: counts.bowl,
+    ar: counts.ar,
+    wk: counts.wk,
+  };
+
+  const neededRoles: NeededRoles = {
+    bat: needs.bat,
+    bowl: needs.bowl,
+    ar: needs.ar,
+    wk: needs.wk,
+    total: needs.playersRemaining,
+  };
 
   return {
     team,
     slotIndex,
     counts,
-    roles: counts,
+    roles,
     squadCount: counts.total,
+    targetCount: DASHBOARD_SQUAD_TARGET,
     needs,
+    neededRoles,
     mandatoryFilledSlots,
     mandatoryTotalSlots,
     progressSlots,
@@ -210,7 +239,7 @@ function computeSingleTeamDashboardMetrics(
     fullCriterionMet: criteriaMet,
     roleCriterionMet,
     needsSummary,
-    missingSummary: needsSummary,
+    missingSummary,
     popAvg,
     batAvg,
     bowlAvg,

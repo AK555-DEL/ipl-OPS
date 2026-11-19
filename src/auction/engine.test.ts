@@ -145,12 +145,12 @@ test('curated 3-slot Up Next queue, direct jump bids, extend, hammer, and undo',
   vm = buildViewModel(ev, allLots, pidMap, 'MEGA', 350_000);
   assert.equal(vm.lot, null);
   assert.equal(vm.last?.t, 'SOLD');
-  assert.equal(vm.teams.find((t) => t.id === 't2')?.purse, 12000 - (expectedFirst.base + 100));
+  assert.equal(vm.teams.find((t) => t.id === 't2')?.purse, 15000 - (expectedFirst.base + 100));
 
   // Undo restores purse and lot
   ev = executeCommand(ev, allLots, pidMap, 'MEGA', { type: 'undo' }, 351_000);
   vm = buildViewModel(ev, allLots, pidMap, 'MEGA', 351_000);
-  assert.equal(vm.teams.find((t) => t.id === 't2')?.purse, 12000);
+  assert.equal(vm.teams.find((t) => t.id === 't2')?.purse, 15000);
   assert.equal(vm.lot?.team, 't2');
 });
 
@@ -165,7 +165,7 @@ test('auctioned franchise title deducts budget, rebrands club, and cannot be rel
   assert.equal(t3.short, 'CSK');
   assert.equal(t3.name, 'Chennai Super Kings');
   assert.equal(t3.titlePrice, 1000);
-  assert.equal(t3.purse, 11000);
+  assert.equal(t3.purse, 14000);
   assert.equal(t3.n, 0); // Title does not consume player squad slot
 
   // Same club team cannot bid on a second franchise title
@@ -191,7 +191,7 @@ test('auctioned franchise title deducts budget, rebrands club, and cannot be rel
   );
   vm = buildViewModel(ev, allLots, pidMap, 'MEGA');
   assert.equal(vm.teams.find((t) => t.id === 't3')?.short, 'CSK');
-  assert.equal(vm.teams.find((t) => t.id === 't3')?.purse, 11000);
+  assert.equal(vm.teams.find((t) => t.id === 't3')?.purse, 14000);
 });
 
 test('mix_match interleaves players, generates 11 franchise lists, and preserves lowest->highest title order', () => {
@@ -282,7 +282,7 @@ test('overseas cap, reserve rules, player release, and accelerated round enforce
   ev = executeCommand(ev, allLots, pidMap, 'MEGA', {
     type: 'custom',
     team: 't8',
-    price: 15000,
+    price: 18000,
   });
   ev = executeCommand(ev, allLots, pidMap, 'MEGA', { type: 'resetbid' });
   ev = executeCommand(ev, allLots, pidMap, 'MEGA', { type: 'unsold' });

@@ -144,7 +144,7 @@ test('buildTeamPurseRows returns remaining purse for all 11 teams, tracks live l
   const initialRows = buildTeamPurseRows(initialVm.teams, initialVm.lot);
   assert.equal(initialRows.length, 11);
   for (const row of initialRows) {
-    assert.equal(row.remainingLakhs, 12000);
+    assert.equal(row.remainingLakhs, 15000);
     assert.equal(row.remainingPct, 100);
     assert.equal(row.isLeading, false);
     assert.equal(row.projectedAfterBidLakhs, null);
@@ -159,8 +159,8 @@ test('buildTeamPurseRows returns remaining purse for all 11 teams, tracks live l
   const t2Live = liveRows.find((r) => r.team.id === 't2')!;
   const t1Live = liveRows.find((r) => r.team.id === 't1')!;
   assert.equal(t2Live.isLeading, true);
-  assert.equal(t2Live.remainingLakhs, 12000);
-  assert.equal(t2Live.projectedAfterBidLakhs, 12000 - liveVm.lot!.price);
+  assert.equal(t2Live.remainingLakhs, 15000);
+  assert.equal(t2Live.projectedAfterBidLakhs, 15000 - liveVm.lot!.price);
   assert.equal(t1Live.isLeading, false);
   assert.equal(t1Live.projectedAfterBidLakhs, null);
 
@@ -170,6 +170,6 @@ test('buildTeamPurseRows returns remaining purse for all 11 teams, tracks live l
   const t2Sold = soldRows.find((r) => r.team.id === 't2')!;
   assert.equal(t2Sold.isLeading, false);
   assert.equal(t2Sold.projectedAfterBidLakhs, null);
-  assert.equal(t2Sold.remainingLakhs, 12000 - liveVm.lot!.price);
+  assert.equal(t2Sold.remainingLakhs, 15000 - liveVm.lot!.price);
   assert.ok(t2Sold.remainingPct < 100);
 });

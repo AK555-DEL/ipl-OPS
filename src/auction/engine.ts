@@ -356,7 +356,10 @@ export interface InternalState {
   t: Record<string, InternalTeamState>;
 }
 
-export const startPurse = (t: TeamConfig, preset: Preset): number => (preset === 'MINI' ? t.mini : 12000);
+export const MEGA_PURSE_LAKHS = 15000;
+
+export const startPurse = (t: TeamConfig, preset: Preset): number =>
+  preset === 'MINI' ? t.mini : MEGA_PURSE_LAKHS;
 
 function initState(preset: Preset): InternalState {
   return {
